@@ -14,9 +14,8 @@ matlab/
 
 ## Dependencies
 
-- MATLAB (version TBD — please confirm minimum tested version)
-- The following Meganet files, not yet included in this repo:
-  `Meganet.m`, `NN.m`, `getPolynomialBasis.m`, `getDenseAntiSym.m`, `doubleSymLayer.m`, `ResNNrk4.m`, `opEye.m`, `tikhonovReg.m`
+- MATLAB R2024B and newer
+- The Meganet files included in this repo
 
 ## Data
 
