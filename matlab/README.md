@@ -2,10 +2,6 @@
 
 Reproduces Table 2, Table 3, and Figures 1–5.
 
-## Status
-
-> **This directory is not yet runnable end-to-end.** `experiments/runExperiment_v2.m` depends on several Meganet library files not yet included here — see [Dependencies](#dependencies) below. Everything else (setup scripts, batch launchers, result aggregation) is in place and ready once those land.
-
 ## Directory layout
 
 ```
