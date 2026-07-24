@@ -14,7 +14,7 @@ matlab/
 
 ## Dependencies
 
-- MATLAB R2024B and newer
+- MATLAB R2024b and newer
 - The Meganet files included in this repo
 
 ## Data
