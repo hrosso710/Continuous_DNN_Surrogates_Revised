@@ -23,7 +23,6 @@ If you use this code, please cite:
       primaryClass={cs.LG},
       url={https://arxiv.org/abs/2507.22045}, 
 }
-}
 ```
 
 ## License
