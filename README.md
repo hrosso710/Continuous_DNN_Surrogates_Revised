@@ -14,11 +14,15 @@ Each section has its own README with setup and exact reproduction commands per t
 If you use this code, please cite:
 
 ```bibtex
-@article{RossoRuthottoSargsyan,
-  title   = {Weight-Parameterization in Continuous Time Deep Neural Networks for Surrogate Modeling},
-  author  = {Rosso, Haley and Ruthotto, Lars and Sargsyan, Khachik},
-  journal = {TBD},
-  year    = {TBD}
+@misc{RossoRuthottoSargsyan,
+      title={Weight-Parameterization in Continuous Time Deep Neural Networks for Surrogate Modeling}, 
+      author={Haley Rosso and Lars Ruthotto and Khachik Sargsyan},
+      year={2025},
+      eprint={2507.22045},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2507.22045}, 
+}
 }
 ```
 
