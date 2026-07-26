@@ -1,0 +1,76 @@
+# MATLAB: discretize-then-optimize ResNet/Hamiltonian experiments
+
+Reproduces Table 2, Table 3, and Figures 1–5.
+
+**Metric note:** Table 2 and Table 3 report *test* and *train* relative error respectively; Figures 2–5 report *train/validation* error (the per-iteration solver history only logs train/val — test is a single final scalar).
+
+## Directory layout
+
+```
+matlab/
+├── meganet/       Core network layers and optimizers (forked from Meganet)
+├── data/          Dataset setup functions + ELM data (NNERDS.mat)
+├── experiments/   Experiment driver, batch launchers, results aggregation
+└── README.md
+```
+
+## Dependencies
+
+- MATLAB R2024b and newer
+
+## Data
+
+- **ELM**: `data/NNERDS.mat` is included directly (420 KB).
+- **CDR**: `data/CDR_Data.mat` is included directly (620 KB).
+- **DCR**: `data/DCR_Data.mat` (65 MB) is hosted on Zenodo rather than committed directly: [10.5281/zenodo.21537966](https://doi.org/10.5281/zenodo.21537966). Download it and place it in `matlab/data/` before running any DCR experiment.
+
+## Reproducing results
+
+All experiments write to a `results/` directory (created automatically) as one `.mat` file per `(dataset, architecture, basis, degree, T, optimizer)` configuration, plus a raw per-iteration history `.txt` file.
+
+### Running a single configuration
+
+```matlab
+addpath(genpath('meganet'), genpath('data'), genpath('experiments'))
+runExperiment_v2('hamiltonian', 1, 3, 'sgd', 'Legendre', 'DCR')
+```
+
+Arguments: `dynamic` (`'ResNN'`, `'hamiltonian'`, `'leapfrog'`, `'antiSym-ResNN'`), `T`, `d` (basis degree), `opti` (`'sgd'` for ADAM, `'GNvpro'`), `basis` (`'monomial'`, `'Legendre'`, `'none'`), `dataset` (`'ELM'`, `'CDR'`, `'DCR'`).
+
+### Running the full Table 2 sweep
+
+```matlab
+run_all_table2   % all 18 (dataset, T, optimizer) groups, 12 configs each; calls collectResults() at the end
+```
+
+Or run any single `(dataset, T, optimizer)` batch directly:
+
+```matlab
+runConfigBatch('DCR', 5, 'GNvpro')
+```
+
+### Aggregating results
+
+```matlab
+collectResults()
+```
+
+Produces, inside `results/`:
+- `summary_all_runs.csv` — one row per completed run, all metrics and provenance
+- `table2_pivot.csv` — Table 2-shaped pivot (dataset × T × basis → architecture × optimizer), with blank cells marking runs not yet completed
+- `tikzdata/*.dat` — per-iteration train/validation loss traces for Figures 2–5 (ADAM/sgd, T=1 runs only)
+
+### Table 3
+
+Table 3 (DCR, Hamiltonian, T=1, ADAM, ΔError vs. Legendre degree) needs metrics `collectResults.m` doesn't compute (training error rather than test, dynamics-only parameter count), so it has its own aggregation script:
+
+```matlab
+collectTable3
+```
+
+Produces `results/table3_pivot.csv`. `DeltaError` is the absolute difference between each degree's mean training relative error and the non-parameterized baseline's — negative means the parameterized model wins.
+
+## Notes on optimizers
+
+- **ADAM (`'sgd'`)**: trains both the dynamics parameters (`theta`) and the linear readout (`W`) jointly. `W` is warm-started via closed-form ridge regression at the initial `theta` (rather than a raw random draw) and both `theta` and `W` are Tikhonov-regularized with the same `alpha1`/`alpha2` weights GNvpro uses — see the comments in `runExperiment_v2.m`'s `sgd` branch for the full rationale.
+- **GNvpro**: a Gauss-Newton variable-projection method that solves for `W` in closed form at each outer iteration.
