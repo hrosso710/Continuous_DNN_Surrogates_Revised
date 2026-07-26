@@ -24,9 +24,7 @@ Same run family as Table 4/6 (`ode_demo_NEW.py`'s `--test_freq`-interval logging
 
 ## Still needed to fully populate this section
 
-- `aggregate_table4.py`
-- `run_table6_seeds.sh`
 - The degree-3 run script/command (or just the resulting JSON files) used for Table 4/6's locked-in degree-3 numbers
 - `train_surrogate_node.py` (Table 5) — not yet started
 - Per-iteration loss/NFE export for Figure 6 (or confirmation of how it's currently being plotted)
-- `requirements.txt` / `environment.yml`
+
