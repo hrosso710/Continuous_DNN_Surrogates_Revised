@@ -2,10 +2,6 @@
 
 Reproduces Table 2, Table 3, and Figures 1–5.
 
-## Status
-
-> **This directory is not yet runnable end-to-end.** `experiments/runExperiment_v2.m` depends on several Meganet library files not yet included here — see [Dependencies](#dependencies) below. Everything else (setup scripts, batch launchers, result aggregation) is in place and ready once those land.
-
 ## Directory layout
 
 ```
@@ -18,9 +14,9 @@ matlab/
 
 ## Dependencies
 
-- MATLAB (version TBD — please confirm minimum tested version)
+- MATLAB 2024b
 - The following Meganet files, not yet included in this repo:
-  `Meganet.m`, `NN.m`, `getPolynomialBasis.m`, `getDenseAntiSym.m`, `doubleSymLayer.m`, `ResNNrk4.m`, `opEye.m`, `tikhonovReg.m`
+  `Meganet.m`, `NN.m`, `getPolynomialBasis.m`, `getDenseAntiSym.m`, `doubleSymLayer.m`, `ResNNrk4.m`, `opEye.m`, `tikhonovReg.m` 
 
 ## Data
 
