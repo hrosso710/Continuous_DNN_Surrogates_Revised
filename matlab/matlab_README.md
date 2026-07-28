@@ -2,7 +2,9 @@
 
 Reproduces Table 2, Table 3, and Figures 1–5.
 
-**Metric note:** Table 2 and Table 3 report *test* and *train* relative error respectively; Figures 2–5 report *train/validation* error (the per-iteration solver history only logs train/val — test is a single final scalar).
+## Status
+
+> **This directory is not yet runnable end-to-end.** `experiments/runExperiment_v2.m` depends on several Meganet library files not yet included here — see [Dependencies](#dependencies) below. Everything else (setup scripts, batch launchers, result aggregation) is in place and ready once those land.
 
 ## Directory layout
 
@@ -16,7 +18,9 @@ matlab/
 
 ## Dependencies
 
-- MATLAB R2024b and newer
+- MATLAB (version TBD — please confirm minimum tested version)
+- The following Meganet files, not yet included in this repo:
+  `Meganet.m`, `NN.m`, `getPolynomialBasis.m`, `getDenseAntiSym.m`, `doubleSymLayer.m`, `ResNNrk4.m`, `opEye.m`, `tikhonovReg.m`
 
 ## Data
 
@@ -60,17 +64,8 @@ Produces, inside `results/`:
 - `table2_pivot.csv` — Table 2-shaped pivot (dataset × T × basis → architecture × optimizer), with blank cells marking runs not yet completed
 - `tikzdata/*.dat` — per-iteration train/validation loss traces for Figures 2–5 (ADAM/sgd, T=1 runs only)
 
-### Table 3
-
-Table 3 (DCR, Hamiltonian, T=1, ADAM, ΔError vs. Legendre degree) needs metrics `collectResults.m` doesn't compute (training error rather than test, dynamics-only parameter count), so it has its own aggregation script:
-
-```matlab
-collectTable3
-```
-
-Produces `results/table3_pivot.csv`. `DeltaError` is the absolute difference between each degree's mean training relative error and the non-parameterized baseline's — negative means the parameterized model wins.
-
 ## Notes on optimizers
 
 - **ADAM (`'sgd'`)**: trains both the dynamics parameters (`theta`) and the linear readout (`W`) jointly. `W` is warm-started via closed-form ridge regression at the initial `theta` (rather than a raw random draw) and both `theta` and `W` are Tikhonov-regularized with the same `alpha1`/`alpha2` weights GNvpro uses — see the comments in `runExperiment_v2.m`'s `sgd` branch for the full rationale.
 - **GNvpro**: a Gauss-Newton variable-projection method that solves for `W` in closed form at each outer iteration.
+
