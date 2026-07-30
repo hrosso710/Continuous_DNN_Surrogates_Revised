@@ -28,10 +28,17 @@ if not(exist('DCR_Data.mat','file'))
     
     warning('DCR_Data cannot be found in MATLAB path')
     
-    dataURL = 'http://www.mathcs.emory.edu/~lruthot/publication/newman-et-al-2020/DCR_Data.mat';
+    % Hosted on Zenodo (DOI 10.5281/zenodo.21537966), not the old
+    % mathcs.emory.edu host from the 2020 arXiv preprint (that host is
+    % unrelated to this paper's data availability statement and should
+    % not be used). Zenodo file-download URLs embed a content hash that
+    % isn't derivable from the DOI alone, so we resolve it via the
+    % Zenodo REST API at runtime instead of hardcoding a guessed link --
+    % this stays correct even if Zenodo re-shuffles internal URLs.
+    zenodoRecordID = '21537966';
     dataDir = [fileparts(which('Meganet.m')) filesep 'data' filesep 'DCR'];
     
-    doDownload = input(sprintf('Do you want to download %s (around 64 MB) to %s? Y/N [Y]: ',dataURL,dataDir),'s');
+    doDownload = input(sprintf('Do you want to download DCR_Data.mat from Zenodo (record %s, around 64 MB) to %s? Y/N [Y]: ',zenodoRecordID,dataDir),'s');
     
     if isempty(doDownload)  || strcmp(doDownload,'Y')
         
@@ -40,8 +47,23 @@ if not(exist('DCR_Data.mat','file'))
         end
         imtz = fullfile(dataDir,'DCR_Data.mat');
         
-        % need to change name!
-        websave(imtz,dataURL);
+        record = webread(sprintf('https://zenodo.org/api/records/%s',zenodoRecordID));
+        fileEntry = [];
+        for k = 1:numel(record.files)
+            if strcmpi(record.files(k).key,'DCR_Data.mat')
+                fileEntry = record.files(k);
+                break
+            end
+        end
+        if isempty(fileEntry)
+            error('setupDCR:fileNotFound', ...
+                ['DCR_Data.mat not found among the files in Zenodo record %s. ' ...
+                 'Check https://doi.org/10.5281/zenodo.%s for the current filename ' ...
+                 'and update zenodoRecordID / the file key in setupDCR.m accordingly.'], ...
+                zenodoRecordID, zenodoRecordID);
+        end
+        
+        websave(imtz,fileEntry.links.self);
         addpath(dataDir);
     else
         error('DCR_Data data not available. Please make sure it is in the current path');
