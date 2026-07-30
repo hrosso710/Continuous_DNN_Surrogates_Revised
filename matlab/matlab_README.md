@@ -14,15 +14,14 @@ matlab/
 
 ## Dependencies
 
-- MATLAB 2024b
-- The following Meganet files, not yet included in this repo:
-  `Meganet.m`, `NN.m`, `getPolynomialBasis.m`, `getDenseAntiSym.m`, `doubleSymLayer.m`, `ResNNrk4.m`, `opEye.m`, `tikhonovReg.m` 
+- MATLAB R2024b and newer
+- Symbolic Math Toolbox — `meganet/getPolynomialBasis.m`'s `'Legendre'` basis calls `legendreP`, which lives in this toolbox rather than core MATLAB 
 
 ## Data
 
 - **ELM**: `data/NNERDS.mat` is included directly (420 KB).
 - **CDR**: `data/CDR_Data.mat` is included directly (620 KB).
-- **DCR**: `data/DCR_Data.mat` (65 MB) is hosted on Zenodo rather than committed directly: [10.5281/zenodo.21537966](https://doi.org/10.5281/zenodo.21537966). Download it and place it in `matlab/data/` before running any DCR experiment.
+- **DCR**: `data/DCR_Data.mat` (65 MB) is hosted on Zenodo rather than committed directly: [10.5281/zenodo.21537966](https://doi.org/10.5281/zenodo.21537966). `setupDCR.m` will offer to download it automatically (via the Zenodo API) the first time it's needed; alternatively, download it yourself from that DOI and place it in `matlab/data/` before running any DCR experiment.
 
 ## Reproducing results
 
