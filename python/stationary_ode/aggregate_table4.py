@@ -1,21 +1,24 @@
 """
 aggregate_table4.py
 
-Reads the per-run JSON summaries produced by the degree 4/5 sweep
-(run_table4_degrees.sh -> results_table4_{basis}_d{degree}_seed{seed}.json)
-and aggregates them into Table-4-ready rows: mean/std test relative error
-per (basis, degree), plus Delta-Error relative to the static (identity)
-baseline.
+Reads the per-run JSON summaries produced by run_experiment.sh's degree
+3/4/5 sweep (results_table4_{basis}_d{degree}_seed{seed}.json) and
+aggregates them into Table-4-ready rows: mean/std test relative error per
+(basis, degree), plus Delta-Error relative to the static (identity)
+baseline. Table 6 (degree-3-only train/val/test numbers) is a separate
+script, aggregate_table6.py, reading the same result files.
 
 Usage:
     python3 aggregate_table4.py --results_dir results
 
-The static baseline's mean test relative error defaults to 8.2132, taken
-from the already-aggregated degree-3 matrix (results_table6_none_seed*.json,
-via aggregate_table6.py) -- override with --static_baseline_relerr if that
-number ever changes (e.g. if the static baseline is ever rerun).
+The static baseline's mean test relative error defaults to 8.2132, an
+earlier value whose protocol (--grad_clip/--lr_decay_every/--early_stop_patience)
+has not been confirmed to match the current run_experiment.sh -- see the
+⚠️ GAP note there. run_experiment.sh does not currently regenerate this
+baseline (it only loops over basis in {monomial, legendre}, never 'none'),
+so there is no real degree-3 static-baseline result file to read this from
+yet. Override with --static_baseline_relerr once that's resolved.
 """
-
 import argparse
 import glob
 import json
@@ -101,7 +104,7 @@ def main():
         })
 
     print("\n" + "=" * 90)
-    print("TABLE 4 rows (degree 4/5 sweep) -- ready to paste in")
+    print("TABLE 4 rows (degree 3/4/5 sweep) -- ready to paste in")
     print("=" * 90)
     print(f"{'Basis':<12}{'Degree':<8}{'Params':<10}{'Test RelErr (mean+-std)':<28}{'DeltaError':<12}")
     print("-" * 90)
