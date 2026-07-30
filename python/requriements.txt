@@ -1,0 +1,7 @@
+torch==2.5.1
+torchdiffeq  # version unpinned -- not present in the source environment this file was pruned from; please pin to whatever you have installed (`pip show torchdiffeq`)
+numpy==2.3.4
+scipy==1.17.0
+pandas==2.3.3
+matplotlib==3.10.7
+tqdm  # version unpinned -- source freeze had a local file:// build path, no clean version string
