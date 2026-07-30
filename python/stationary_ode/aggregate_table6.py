@@ -1,0 +1,192 @@
+"""
+aggregate_table6.py
+
+Table 6 is the degree-3-only slice of the same stationary_ode sweep used for
+Table 4 (same result files, same run_experiment.sh, same ode_demo_NEW.py --
+no separate run/results-file convention). Where Table 4 reports test relative
+error + Delta-Error vs. a static baseline across degrees 3-5, Table 6 reports
+train/val/test relative error at degree 3 only, mirroring aggregate_table5.py's
+train/val/test reporting shape (no dataset axis here, since stationary_ode is
+a single synthetic task, not three real datasets).
+
+Reads the same results/results_table4_{basis}_d{degree}_seed{seed}.json files
+aggregate_table4.py reads, and filters to degree == 3 in code (there is no
+separate results_table6_*.json naming convention -- run_experiment.sh writes
+every degree under the results_table4_ prefix). EXCEPTION: basis='none' runs
+always have degree=0 in their JSON (ode_demo_NEW.py deliberately zeroes
+--degree as a placeholder for the static/identity baseline, since degree
+doesn't apply to it -- matches the MATLAB pipeline's convention) -- these are
+included regardless of the degree==3 filter, since 'none' is the one basis
+with no degree axis to filter on.
+
+Confirmed 2026-07-30: static baseline reran under the current protocol
+(--grad_clip 1.0 --lr_decay_every 500 --lr_decay_gamma 0.5
+--early_stop_patience 5), 5 seeds, all cleanly early-stopped. Mean test
+relerr 8.2132 -- matches the previous hardcoded aggregate_table4.py default
+almost exactly, so that number was apparently fine; now it's backed by real
+result files instead of an unconfirmed constant.
+
+Usage:
+    python3 aggregate_table6.py --results_dir results
+"""
+
+import argparse
+import glob
+import json
+import os
+import statistics
+import sys
+
+BASIS_ORDER = ['none', 'monomial', 'legendre']
+BASIS_LABELS = {'none': 'static (identity)', 'monomial': 'monomial', 'legendre': 'legendre'}
+TARGET_DEGREE = 3
+
+
+def load_results(results_dir):
+    pattern = os.path.join(results_dir, 'results_table4_*.json')
+    files = sorted(glob.glob(pattern))
+    if not files:
+        print(f"No result files found matching {pattern}", file=sys.stderr)
+        sys.exit(1)
+
+    by_basis = {}
+    for f in files:
+        with open(f) as fh:
+            r = json.load(fh)
+        # basis='none' always has degree=0 (placeholder -- see module docstring),
+        # so it's exempt from the degree==3 filter that applies to monomial/legendre.
+        if r.get('basis') != 'none' and r.get('degree') != TARGET_DEGREE:
+            continue
+        by_basis.setdefault(r['basis'], []).append(r)
+    return by_basis
+
+
+def check_run_health(runs, basis):
+    problems = []
+    for r in runs:
+        if not r.get('stopped_early', False):
+            problems.append(
+                f"  {basis}, seed {r['seed']}: did NOT trigger early stopping "
+                f"(ran to iter {r.get('stop_iter') or r['niters_requested']})."
+            )
+    if problems:
+        print(f"\n[WARNING] {basis}: {len(problems)}/{len(runs)} run(s) did not cleanly "
+              f"early-stop:")
+        for p in problems:
+            print(p)
+    return len(problems)
+
+
+def aggregate(by_basis):
+    rows = []
+    total_problems = 0
+
+    present_bases = [b for b in BASIS_ORDER if b in by_basis]
+    missing_bases = [b for b in BASIS_ORDER if b not in by_basis]
+    if 'none' in missing_bases:
+        print("[WARNING] No basis='none' (static/identity baseline) results found. "
+              "run_experiment.sh does not currently run this configuration -- see "
+              "aggregate_table4.py's docstring for how to generate it. Table 6's "
+              "static-baseline row cannot be reported until that run is added.",
+              file=sys.stderr)
+    other_missing = [b for b in missing_bases if b != 'none']
+    if other_missing:
+        print(f"[WARNING] No degree-{TARGET_DEGREE} results for basis(es) {other_missing}",
+              file=sys.stderr)
+
+    for basis in present_bases:
+        runs = by_basis[basis]
+        seeds_present = sorted(r['seed'] for r in runs)
+        expected_seeds = list(range(5))
+        if seeds_present != expected_seeds:
+            print(f"[WARNING] {basis}: expected seeds {expected_seeds}, found {seeds_present}",
+                  file=sys.stderr)
+
+        total_problems += check_run_health(runs, basis)
+
+        def stats(key):
+            vals = [r[key] for r in runs]
+            mean = statistics.mean(vals)
+            std = statistics.stdev(vals) if len(vals) > 1 else 0.0
+            return mean, std
+
+        train_mean, train_std = stats('reported_train_relerr')
+        val_mean, val_std = stats('reported_val_relerr')
+        test_mean, test_std = stats('reported_test_relerr')
+
+        params_seen = {r['trainable_params'] for r in runs}
+        if len(params_seen) > 1:
+            print(f"[WARNING] {basis}: inconsistent trainable_params across seeds: "
+                  f"{sorted(params_seen)}", file=sys.stderr)
+        params = runs[0]['trainable_params']
+
+        rows.append({
+            'basis': basis, 'label': BASIS_LABELS[basis], 'n_seeds': len(runs), 'params': params,
+            'train_mean': train_mean, 'train_std': train_std,
+            'val_mean': val_mean, 'val_std': val_std,
+            'test_mean': test_mean, 'test_std': test_std,
+        })
+    return rows, total_problems
+
+
+def print_table(rows):
+    print("\n" + "=" * 100)
+    print(f"TABLE 6 (stationary ODE, degree {TARGET_DEGREE} only) -- aggregated over seeds, relative error")
+    print("=" * 100)
+    header = (f"{'Basis':<18} {'N':<3} {'Params':<8} {'Train (mean±std)':<20} "
+              f"{'Val (mean±std)':<20} {'Test (mean±std)':<20}")
+    print(header)
+    print("-" * 100)
+    for row in rows:
+        train_str = f"{row['train_mean']:.4f}±{row['train_std']:.4f}"
+        val_str = f"{row['val_mean']:.4f}±{row['val_std']:.4f}"
+        test_str = f"{row['test_mean']:.4f}±{row['test_std']:.4f}"
+        print(f"{row['label']:<18} {row['n_seeds']:<3} {row['params']:<8} "
+              f"{train_str:<20} {val_str:<20} {test_str:<20}")
+    print("=" * 100)
+
+
+def write_csv(rows, path):
+    with open(path, 'w') as f:
+        f.write("basis,n_seeds,params,train_mean,train_std,val_mean,val_std,test_mean,test_std\n")
+        for row in rows:
+            f.write(f"{row['basis']},{row['n_seeds']},{row['params']},"
+                    f"{row['train_mean']:.6f},{row['train_std']:.6f},"
+                    f"{row['val_mean']:.6f},{row['val_std']:.6f},"
+                    f"{row['test_mean']:.6f},{row['test_std']:.6f}\n")
+    print(f"Wrote {path}")
+
+
+def write_markdown(rows, path):
+    with open(path, 'w') as f:
+        f.write("| Basis | N | Params | Train RelErr | Val RelErr | Test RelErr |\n")
+        f.write("|---|---|---|---|---|---|\n")
+        for row in rows:
+            f.write(f"| {row['label']} | {row['n_seeds']} | {row['params']} | "
+                     f"{row['train_mean']:.4f} ± {row['train_std']:.4f} | "
+                     f"{row['val_mean']:.4f} ± {row['val_std']:.4f} | "
+                     f"{row['test_mean']:.4f} ± {row['test_std']:.4f} |\n")
+    print(f"Wrote {path}")
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--results_dir', type=str, default='.')
+    args = parser.parse_args()
+
+    by_basis = load_results(args.results_dir)
+    rows, total_problems = aggregate(by_basis)
+    print_table(rows)
+
+    write_csv(rows, os.path.join(args.results_dir, 'table6_results.csv'))
+    write_markdown(rows, os.path.join(args.results_dir, 'table6_results.md'))
+
+    if total_problems > 0:
+        print(f"\n[SUMMARY] {total_problems} run(s) did not cleanly early-stop -- review "
+              f"before treating this table as final.")
+    else:
+        print(f"\n[SUMMARY] All runs cleanly triggered early stopping.")
+
+
+if __name__ == '__main__':
+    main()
