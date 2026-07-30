@@ -11,13 +11,15 @@ script, aggregate_table6.py, reading the same result files.
 Usage:
     python3 aggregate_table4.py --results_dir results
 
-The static baseline's mean test relative error defaults to 8.2132, an
-earlier value whose protocol (--grad_clip/--lr_decay_every/--early_stop_patience)
-has not been confirmed to match the current run_experiment.sh -- see the
-⚠️ GAP note there. run_experiment.sh does not currently regenerate this
-baseline (it only loops over basis in {monomial, legendre}, never 'none'),
-so there is no real degree-3 static-baseline result file to read this from
-yet. Override with --static_baseline_relerr once that's resolved.
+The static baseline's mean test relative error defaults to 8.2132, confirmed
+2026-07-30 by rerunning basis='none', 5 seeds, under the current protocol
+(--grad_clip 1.0 --lr_decay_every 500 --lr_decay_gamma 0.5
+--early_stop_patience 5) -- all 5 runs cleanly early-stopped
+(results_table4_none_d3_seed0-4.json). This matches the previous hardcoded
+value almost exactly (new mean: 8.2132 +/- 0.3433 across seeds), so the old
+number was apparently fine -- it's just backed by real result files now
+instead of an unconfirmed constant. Override with --static_baseline_relerr
+if this is ever rerun and the value changes.
 """
 import argparse
 import glob
