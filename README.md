@@ -7,6 +7,8 @@ This repository is organized into two independent sections, corresponding to the
 - [`matlab/`](matlab) — discretize-then-optimize ResNet and Hamiltonian-inspired architectures (Table 2, Table 3, Figures 1–5). Trained with ADAM and GNvpro via a fork of the [Meganet](https://github.com/EmoryMLIP) library.
 - `python/` — optimize-then-discretize neural ODE experiments (Table 4, Table 5, Table 6, Figure 6). *(coming soon)*
 
+- [`python/`](python) — optimize-then-discretize neural ODE experiments (Table 4, Table 5, Table 6, Figure 6).
+
 Each section has its own README with setup and exact reproduction commands per table/figure. [`TABLE_FIGURE_MAP.md`](TABLE_FIGURE_MAP.md) is a map that directs every table/figure in the paper to the exact script that generates it, spanning both sections.
 
 ## Citation
