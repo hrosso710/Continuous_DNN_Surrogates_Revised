@@ -14,6 +14,7 @@ python/
 ├── stationary_ode/         Table 4, Table 6 (synthetic 2D linear ODE task)
 │   ├── ode_demo_NEW.py
 │   ├── aggregate_table4.py
+│   ├── aggregate_table6.py
 │   ├── run_test.sh
 │   ├── run_experiment.sh       consolidated: degree 3, 4, 5, all in one script
 │   ├── process_results.sh
@@ -21,18 +22,21 @@ python/
 │   └── outputs/
 └── surrogate/               Table 5, Figure 6 (ELM/CDR/DCR surrogate datasets)
     ├── train_surrogate_node.py
+    ├── aggregate_table5.py
     ├── data/                 NNERDS.mat, CDR_Data.mat, DCR_Data.mat -- a SEPARATE copy from matlab/data/, not shared/symlinked. If the data ever changes, both copies need updating together.
     ├── run_test.sh
     ├── run_experiment.sh
-    ├── process_results.sh      ⚠️ stub -- needs aggregate_table5.py
+    ├── process_results.sh      
     ├── results/                 (gitignored)
     └── outputs/
 ```
 
 ## Status
 
-- **`stationary_ode/`**: fully consolidated. `run_experiment.sh` now runs degree 3, 4, and 5 in one script (previously two separate scripts, with a bug where one passed `aggregate_table4.py` a flag it didn't accept -- caught and fixed). One open item: `aggregate_table4.py`'s static-baseline value (`8.2132`) is a hardcoded default whose provenance (does it predate the current `--grad_clip`/`--lr_decay_every`/`--early_stop_patience` flags, same as the old degree-3 numbers did?) hasn't been confirmed -- see the ⚠️ note in `run_experiment.sh`.
-- **`surrogate/`**: runnable (`run_experiment.sh`, `run_test.sh`), but **`process_results.sh` is a non-functional stub** -- `aggregate_table5.py` doesn't exist yet. `run_table5.sh`'s own comments flag that its protocol (degree=3, 5 seeds, mirroring `run_table6_seeds.sh`) is an *assumption*, not yet confirmed against a manuscript draft of Table 5 -- and that its hyperparameter defaults were only smoke-tested on synthetic data, not real ELM/CDR/DCR signal. Worth a single real-data smoke run (`./run_test.sh` does this on CDR) before trusting the full 45-run sweep.
+## Status
+
+- **`stationary_ode/`**: fully consolidated and runnable end to end, including Table 6 (`aggregate_table6.py`, kept as its own script rather than folded into `aggregate_table4.py`, reading the same `results_table4_*.json` files filtered to degree 3). One open item, affecting both tables: the static-baseline value is hardcoded (`8.2132` in `aggregate_table4.py`) because `run_experiment.sh` only loops over `basis in {monomial, legendre}` -- it never runs `basis='none'`, so there's no real degree-3 static-baseline result file for either script to read from yet. `aggregate_table6.py` will warn explicitly about this rather than silently omitting or fabricating that row. Confirm the provenance of `8.2132` (does it predate the current `--grad_clip`/`--lr_decay_every`/`--early_stop_patience` flags?) and, if it needs rerunning, add `basis=none` to `run_experiment.sh`'s sweep.
+- **`surrogate/`**: fully runnable end to end (`run_test.sh` → `run_experiment.sh` → `process_results.sh` → `aggregate_table5.py`). `run_experiment.sh`'s own comments flag that its protocol (degree=3, 5 seeds, mirroring `run_table6_seeds.sh`'s original structure) is an *assumption*, not yet confirmed against a manuscript draft of Table 5 -- and that its hyperparameter defaults were only smoke-tested on synthetic data, not real ELM/CDR/DCR signal. Worth a single real-data smoke run (`./run_test.sh` does this on CDR) before trusting the full 45-run sweep.
 
 ## Shared modules
 
@@ -88,5 +92,5 @@ cd stationary_ode
 
 cd ../surrogate
 ./run_experiment.sh    # 45 runs: 3 datasets x 3 bases x 5 seeds
-./process_results.sh   # ⚠️ not functional yet -- needs aggregate_table5.py
+./process_results.sh  
 ```
