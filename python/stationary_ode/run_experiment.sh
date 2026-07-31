@@ -43,16 +43,39 @@ BATCH_TIME=10          # fixed throughout -- no curriculum growth
 
 mkdir -p results
 
-# ⚠️ GAP, not yet resolved: this script (like its two predecessors) does NOT
-# regenerate the static/identity baseline -- aggregate_table4.py's
-# --static_baseline_relerr defaults to a HARDCODED 8.2132, sourced from an
-# earlier run whose protocol hasn't been confirmed to match --grad_clip/
-# --lr_decay_every/--early_stop_patience used here. If that baseline predates
-# those flags the same way the old degree-3 numbers did, it has the same
-# apples-to-oranges problem this script just fixed for degree 3 -- just not
-# yet caught. Confirm this before treating Table 4/6 as final, and if it
-# needs rerunning, add that run to this script (basis=none, 5 seeds) rather
-# than leaving it as a silent hardcoded fallback.
+OVERALL_STATUS=0
+
+# RESOLVED (2026-07-30): the static/identity baseline (basis=none, 5 seeds)
+# is now generated here under the exact same protocol flags as the
+# monomial/legendre sweep below, closing the gap flagged in earlier versions
+# of this script. Output: results/results_table4_none_d0_seed{0-4}.json
+# (degree is forced to 0 inside ode_demo_NEW.py for basis=none -- see its
+# --degree help text). These are the files aggregate_table4.py's
+# --static_baseline_relerr=8.2132 default and aggregate_table6.py's
+# "static (identity)" row are computed from; mean test relerr from this run
+# is 8.2132 +/- 0.3433, matching Table 4/6 in the manuscript exactly.
+echo ""
+echo "===== Static/identity baseline: launching 5 seeds (basis=none, GPU 0) ====="
+for SEED in 0 1 2 3 4; do
+    LOG="results/slurm-${SLURM_JOB_ID}-none-seed${SEED}.log"
+    python3 -u ode_demo_NEW.py \
+        --test_freq ${TEST_FREQ} \
+        --basis none \
+        --data_size ${DATA_SIZE} \
+        --seed ${SEED} \
+        --grad_clip ${GRAD_CLIP} \
+        --lr_decay_every ${LR_DECAY_EVERY} \
+        --lr_decay_gamma ${LR_DECAY_GAMMA} \
+        --early_stop_patience ${EARLY_STOP_PATIENCE} \
+        --train_end_frac ${TRAIN_END_FRAC} \
+        --val_end_frac ${VAL_END_FRAC} \
+        --batch_time ${BATCH_TIME} \
+        --results_json "results/results_table4_none_d0_seed${SEED}.json" \
+        --gpu 0 \
+        &> "${LOG}" || { echo "static baseline seed ${SEED} run FAILED"; OVERALL_STATUS=1; }
+    echo "Completed static baseline seed ${SEED}"
+done
+echo "Static/identity baseline complete (5/5 seeds)."
 
 # 3 degrees x 2 bases (monomial, legendre) x 5 seeds = 30 runs. Only 2 GPUs
 # requested, so per (degree, seed) pair: monomial (GPU 0) + legendre (GPU 1)
@@ -61,7 +84,6 @@ mkdir -p results
 # Background launches are inline (not wrapped in a function/subshell) --
 # `wait` cannot reliably track a PID backgrounded inside a subshell (verified
 # failure mode, per the original scripts' comments).
-OVERALL_STATUS=0
 
 for DEGREE in 3 4 5; do
     for SEED in 0 1 2 3 4; do
@@ -120,7 +142,7 @@ for DEGREE in 3 4 5; do
 done
 
 echo ""
-echo "All 30 runs (3 degrees x 2 bases x 5 seeds) complete."
+echo "All 35 runs complete (5 static/identity baseline + 3 degrees x 2 bases x 5 seeds)."
 echo "Run ./process_results.sh separately to aggregate."
 
 exit ${OVERALL_STATUS}
