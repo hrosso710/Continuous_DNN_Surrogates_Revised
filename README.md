@@ -5,7 +5,7 @@ Code accompanying the paper *"Weight-Parameterization in Continuous Time Deep Ne
 This repository is organized into two independent sections, corresponding to the two training paradigms studied in the paper:
 
 - [`matlab/`](matlab) — discretize-then-optimize ResNet and Hamiltonian-inspired architectures (Table 2, Table 3, Figures 1–5). Trained with ADAM and GNvpro via a fork of the [Meganet](https://github.com/EmoryMLIP) library.
-- `python/` — optimize-then-discretize neural ODE experiments (Table 4, Table 5, Table 6, Figure 6). *(coming soon)*
+- `python/` — optimize-then-discretize neural ODE experiments (Table 4, Table 5, Table 6, Figure 6). 
 
 - [`python/`](python) — optimize-then-discretize neural ODE experiments (Table 4, Table 5, Table 6, Figure 6).
 
