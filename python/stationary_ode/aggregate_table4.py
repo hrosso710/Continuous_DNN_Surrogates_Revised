@@ -11,15 +11,15 @@ script, aggregate_table6.py, reading the same result files.
 Usage:
     python3 aggregate_table4.py --results_dir results
 
-The static baseline's mean test relative error defaults to 8.2132, confirmed
-2026-07-30 by rerunning basis='none', 5 seeds, under the current protocol
-(--grad_clip 1.0 --lr_decay_every 500 --lr_decay_gamma 0.5
---early_stop_patience 5) -- all 5 runs cleanly early-stopped
-(results_table4_none_d3_seed0-4.json). This matches the previous hardcoded
-value almost exactly (new mean: 8.2132 +/- 0.3433 across seeds), so the old
-number was apparently fine -- it's just backed by real result files now
-instead of an unconfirmed constant. Override with --static_baseline_relerr
-if this is ever rerun and the value changes.
+The static baseline's mean test relative error defaults to 8.2132. This is
+no longer an unconfirmed placeholder: run_experiment.sh now generates the
+static/identity baseline (basis=none, 5 seeds) under the exact same protocol
+flags used for the monomial/legendre sweep (--grad_clip 1.0
+--lr_decay_every 500 --lr_decay_gamma 0.5 --early_stop_patience 5), and the
+resulting files (results_table4_none_d0_seed0-4.json, all 5 cleanly
+early-stopped) give mean test relerr 8.2132 +/- 0.3433 -- matching this
+default exactly. Override with --static_baseline_relerr only if this run is
+ever repeated and the value changes.
 """
 import argparse
 import glob
@@ -28,15 +28,18 @@ import os
 import statistics
 import sys
 
-# Parameter count follows (degree + 1) * 252, matching the double-counting
-# convention already baked into TimeParameterizedNet's reported parameter
-# count (see conversation notes / TABLE_FIGURE_MAP.md) -- consistent with
-# the already-published degree-3 value (1008) and Table 4's existing
-# degree-4/5 parameter counts (1260, 1512).
+# Parameter counts are read directly from each run's recorded
+# 'trainable_params' field (see load_results/main below) rather than
+# computed from a formula, so Table 4 always reflects what the model
+# actually reported -- matching aggregate_table6.py's convention. The
+# (degree + 1) * 252 pattern is what we've observed in practice (degree 3:
+# 1008, degree 4: 1260, degree 5: 1512, degree 0/'none': 252) and is kept
+# here only as a sanity-check cross-reference, not as the source of truth.
 BASE_PARAMS = 252
 
 
-def param_count(degree):
+def expected_param_count(degree):
+    """Sanity-check reference only -- see module-level comment above."""
     return (degree + 1) * BASE_PARAMS
 
 
@@ -99,9 +102,20 @@ def main():
         std = statistics.stdev(errs) if len(errs) > 1 else 0.0
         delta = mean - args.static_baseline_relerr
 
+        params_seen = {r['trainable_params'] for r in runs}
+        if len(params_seen) > 1:
+            print(f"[WARNING] {basis} degree {degree}: inconsistent trainable_params "
+                  f"across seeds: {sorted(params_seen)}", file=sys.stderr)
+        params = runs[0]['trainable_params']
+        if params != expected_param_count(degree):
+            print(f"[WARNING] {basis} degree {degree}: reported trainable_params "
+                  f"({params}) does not match the (degree+1)*252 sanity check "
+                  f"({expected_param_count(degree)}) -- double check before using "
+                  f"this row.", file=sys.stderr)
+
         rows.append({
             'basis': basis, 'degree': degree, 'n_seeds': len(runs),
-            'params': param_count(degree),
+            'params': params,
             'test_mean': mean, 'test_std': std, 'delta': delta,
         })
 
