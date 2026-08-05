@@ -59,10 +59,20 @@ class TimeParameterizedNet(nn.Module):
         self.d = d
         self.basis = basis.lower()
 
-        # 1) (Optional) freeze the original net's parameters so they are not
-        #    trainable directly -- left as-is/disabled to match prior behavior.
-        # for param in self.net.parameters():
-        #     param.requires_grad = False
+        # BUG FIX (dead parameters): self.net's own original parameters are
+        # never used in forward() -- functional_call() always substitutes the
+        # full current_params dict built from time_params, for every named
+        # parameter. So self.net's raw parameters were vestigial (kept only
+        # as the shape/initial-value template copied into time_params[0]
+        # below), yet were left trainable and thus (a) sat in the optimizer's
+        # parameter list doing nothing, and (b) got included in
+        # `sum(p.numel() for p in func.parameters() if p.requires_grad)`,
+        # silently inflating every reported parameter count in Table 4 by
+        # this net's raw size (252 for the stationary-ODE architecture).
+        # Freezing them here removes both problems with no change to
+        # forward() behavior (they were already functionally inert).
+        for param in self.net.parameters():
+            param.requires_grad = False
 
         # 2) Extract the original state of net (including all named_parameters).
         original_state = self.net.state_dict()
@@ -110,6 +120,59 @@ class TimeParameterizedNet(nn.Module):
         else:
             raise ValueError(f"Unknown basis type: {self.basis}")
         return a
+
+    def gram_matrix(self, device=None, dtype=None) -> torch.Tensor:
+        """
+        M_de := \\int_0^1 p_d(t) p_e(t) dt, integrated over the SAME normalized
+        t_norm in [0, 1] that _build_basis operates on (i.e. this matches what
+        the model actually treats as "time" internally, not necessarily the
+        absolute tspan duration -- see the regularization comment in
+        ode_demo_NEW.py for why that's the right choice here).
+
+        Closed form (no numerical integration needed):
+          - monomial:  M_de = 1 / (d + e + 1)                 (dense)
+          - legendre:  M_de = delta_de / (2d + 1)              (diagonal,
+            using orthogonality of the shifted Legendre polynomials on [0,1];
+            equivalent to the manuscript's normalization on [-1, 1] up to the
+            constant Jacobian factor from the t_norm -> x_leg = 2 t_norm - 1
+            change of variables, which is absorbed into alpha).
+
+        This is Eq. (17)'s M matrix (Section 4.2): dense for monomial (couples
+        regularization gradients across degrees), diagonal for Legendre
+        (each coefficient regularized independently, scaled by 1/(2d+1)).
+        """
+        d = self.d
+        idx = torch.arange(d, dtype=dtype or torch.float32, device=device)
+        if self.basis == "monomial":
+            M = 1.0 / (idx.unsqueeze(0) + idx.unsqueeze(1) + 1.0)
+        elif self.basis == "legendre":
+            M = torch.diag(1.0 / (2.0 * idx + 1.0))
+        else:
+            raise ValueError(f"Unknown basis type: {self.basis}")
+        return M
+
+    def regularization_term(self) -> torch.Tensor:
+        """
+        R_NODE(theta) := (alpha/2) * \\int_0^1 ||theta_NODE(t)||_2^2 dt, WITHOUT
+        the alpha factor (caller multiplies by alpha/2 -- see ode_demo_NEW.py),
+        i.e. this returns \\int_0^1 ||theta_NODE(t)||_2^2 dt itself, computed
+        via the Gram matrix as sum_{d,e} M_de <theta_d, theta_e> (manuscript
+        Eq. 5's second term, expanded via the degree-(D+1) basis expansion of
+        Eq. 12/13). This is the SAME quantity whose Frechet derivative w.r.t.
+        a single coefficient theta_d is given in Eq. (17); we don't need that
+        gradient formula explicitly since autograd differentiates this scalar
+        directly, but the diagonal-vs-dense M structure is exactly what makes
+        the resulting gradients match Eq. (17) for Legendre vs monomial.
+        """
+        total = None
+        for time_param in self.time_params.values():
+            # time_param: (d, *orig_shape) -> flatten to (d, N)
+            d = time_param.shape[0]
+            P = time_param.reshape(d, -1)
+            M = self.gram_matrix(device=P.device, dtype=P.dtype)
+            term = torch.sum(P * (M @ P))  # = trace(P^T M P) = sum_de M_de <theta_d, theta_e>
+            total = term if total is None else total + term
+        return total
 
     def forward(self, t, x):
         """
