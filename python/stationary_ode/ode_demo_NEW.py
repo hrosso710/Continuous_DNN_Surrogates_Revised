@@ -64,6 +64,25 @@ parser.add_argument('--early_stop_patience', type=int, default=0,
                           'validation relative error. 0 disables early stopping (default). '
                           'This is a pre-registered stopping rule -- the checkpoint at '
                           'which training stops IS the reported result.')
+parser.add_argument('--alpha', type=float, default=0.0,
+                     help='Regularization strength, matching the manuscript objective '
+                          '(Eq. 3/5): loss = data misfit + (alpha/2) * R(theta), where '
+                          'for basis in {monomial, legendre} R(theta) is the L2(0,T) norm '
+                          'of the time-varying weight trajectory (Eq. 5, computed exactly '
+                          'via the closed-form Gram matrix -- dense for monomial, diagonal '
+                          'for legendre, matching Eq. 17), and for basis=none R(theta) is '
+                          'the standard L2 norm of the (time-invariant) weights, i.e. the '
+                          'D=0 degenerate case of the same expression. Default 0.0 recovers '
+                          'the previous (unregularized) behavior exactly.')
+parser.add_argument('--tspan_mode', type=str, default='full', choices=['full', 'train'],
+                     help='"full" (default): normalize time against the entire absolute '
+                          'span [0, T_MAX], so val/test evaluate the basis functions past '
+                          'their trained sub-interval (continued polynomial extrapolation). '
+                          '"train": normalize against [0, train_end_t] only, so the '
+                          'internal clamp freezes theta(t) at its train_end_t value for '
+                          'all of val/test (zero-order-hold extrapolation instead of '
+                          'polynomial extrapolation). Experimental -- see comment above '
+                          'train_end_t below.')
 parser.add_argument('--results_json', type=str, default=None,
                      help='Path to write a structured JSON summary of this run. Defaults '
                           'to results_{basis}_d{degree}_seed{seed}.json if not given.')
@@ -166,6 +185,19 @@ T_MAX = TSPAN[1]
 # ---------------------------------------------------------------------------
 train_end_t = args.train_end_frac * T_MAX
 val_end_t = args.val_end_frac * T_MAX
+
+if args.tspan_mode == 'train':
+    # EXPERIMENTAL (see inspect_jacobian_stability.py / weight-trajectory
+    # diagnostics): normalize time against the TRAINING window only, not the
+    # full span. Since t_norm is clamped to [0,1] inside TimeParameterizedNet,
+    # this makes theta(t) FREEZE at its t=train_end_t value for all of
+    # val/test, instead of continuing to trace out the polynomial basis's
+    # shape (which for Legendre has a genuine interior curvature reversal --
+    # P3's critical point -- landing inside the val region). Motivated by the
+    # ground truth here being time-invariant, so there's no principled reason
+    # theta(t) should keep varying past the point where data stops
+    # constraining it.
+    TSPAN = [TSPAN[0], train_end_t]
 
 _t_cpu = t.detach().cpu()
 train_end_idx = int(torch.searchsorted(_t_cpu, torch.tensor(train_end_t)).item())
@@ -357,7 +389,16 @@ if __name__ == '__main__':
         # from `t` above) instead of a hardcoded [0, 1]. TimeParameterizedNet
         # uses this to rescale absolute time into [0, 1] before evaluating its
         # polynomial/Legendre basis.
-        func = TimeParameterizedNet(func, tspan=TSPAN, basis=args.basis, d=args.degree).to(device)
+        # BUG FIX (degree off-by-one): TimeParameterizedNet's `d` parameter is
+        # documented as the NUMBER OF BASIS FUNCTIONS, producing powers up to
+        # t^(d-1) -- so a genuine degree-D polynomial (basis {1,...,t^D}, D+1
+        # functions) needs d=D+1. This was previously called with d=args.degree
+        # directly, so every "--degree 3" run only ever fit a degree-2
+        # (quadratic) trajectory {1, t, t^2}, one degree short of what the
+        # flag and every downstream table/figure label claimed. Verified via
+        # checkpoint inspection: time_params shape was (3, 50, 2) under the
+        # old call, confirming only 3 basis functions were ever used.
+        func = TimeParameterizedNet(func, tspan=TSPAN, basis=args.basis, d=args.degree + 1).to(device)
 
     num_params = sum(p.numel() for p in func.parameters() if p.requires_grad)
     print(f"Trainable Parameters: {num_params}")
@@ -405,7 +446,21 @@ if __name__ == '__main__':
         start_time = time.time()
 
         pred_y = odeint(func, batch_y0, batch_t, rtol=args.rtol, atol=args.atol).to(device)
-        loss = torch.mean(torch.abs(pred_y - batch_y))  # diagnostic: raw L1 on a single training window
+        data_loss = torch.mean(torch.abs(pred_y - batch_y))  # raw L1 on a single training window
+        if args.alpha > 0:
+            # R(theta) from Eq. (5): L2(0,T) norm of the time-varying weights for
+            # basis in {monomial, legendre} (via TimeParameterizedNet.regularization_term,
+            # using the closed-form Gram matrix -- Eq. 17); for basis=none (time-invariant
+            # weights) this degenerates to the standard L2 norm of func's own parameters,
+            # which is the D=0 case of the same expression (theta_NODE(t) = theta_0 for
+            # all t, so \int_0^1 ||theta_NODE(t)||^2 dt = ||theta_0||^2 exactly).
+            if args.basis == 'none':
+                reg = sum(p.pow(2).sum() for p in func.parameters())
+            else:
+                reg = func.regularization_term()
+            loss = data_loss + 0.5 * args.alpha * reg
+        else:
+            loss = data_loss
         loss.backward()
         if args.grad_clip > 0:
             torch.nn.utils.clip_grad_norm_(func.parameters(), args.grad_clip)
@@ -530,6 +585,7 @@ if __name__ == '__main__':
         'lr_decay_every': args.lr_decay_every,
         'lr_decay_gamma': args.lr_decay_gamma,
         'early_stop_patience': args.early_stop_patience,
+        'alpha': args.alpha,
         'rtol': args.rtol,
         'atol': args.atol,
         'stopped_early': stopped_early,
@@ -555,4 +611,5 @@ if __name__ == '__main__':
         json.dump(summary, f, indent=2)
     print(f"Saved run summary to {results_path}")
 
+# %%
 # %%
