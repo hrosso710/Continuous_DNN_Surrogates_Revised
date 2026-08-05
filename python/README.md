@@ -54,7 +54,7 @@ python3 -m venv venv && source venv/bin/activate
 pip install torch torchdiffeq numpy scipy tqdm matplotlib pandas
 ```
 
-The `run_experiment.sh`/`run_test.sh` scripts do **not** activate an environment for you — this is intentional, matching the advisor's `rampde` repo convention (`conda activate torch28` as a separate prerequisite step, not hardcoded into each script), since environment location is inherently specific to your machine and can't be baked into a script meant to run on anyone's setup. Activate your environment, *then* run/submit the scripts below.
+The `run_experiment.sh`/`run_test.sh` scripts do **not** activate an environment for you. This is a separate prerequisite step, not hardcoded into each script, since environment location is inherently specific to your machine and can't be baked into a script meant to run on anyone's setup. Activate your environment, *then* run/submit the scripts below.
 
 All scripts resolve their own directory dynamically (`cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"`) rather than hardcoding a path — so they work regardless of where you clone the repo or what directory you run `sbatch`/`./script.sh` from.
 
