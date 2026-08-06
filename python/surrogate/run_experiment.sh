@@ -7,8 +7,6 @@
 #SBATCH -o slurm-%j.out
 #SBATCH -e slurm-%j.err
 
-#SBATCH --nodelist=zuber
-
 set -euo pipefail
 
 # Resolves to this script's own directory, regardless of where the repo is
@@ -19,10 +17,28 @@ cd "$SCRIPT_DIR"
 # Activate your own Python environment BEFORE submitting this job -- see the
 # note in stationary_ode/run_experiment.sh for why this isn't hardcoded here.
 
+# Not every environment this runs in is SLURM (reviewers reproducing results
+# locally won't have SLURM_JOB_ID set at all), and not every machine has an
+# NVIDIA GPU. Both are made optional below rather than assumed.
+SLURM_JOB_ID="${SLURM_JOB_ID:-local}"
+
 echo "Job ID: ${SLURM_JOB_ID}"
 echo "Node: $(hostname)"
 echo "GPUs visible: ${CUDA_VISIBLE_DEVICES:-none}"
-nvidia-smi --query-gpu=index,name,memory.total,memory.used --format=csv
+
+# NUM_GPUS drives the parallel-vs-serial branching below. Detected at RUNTIME
+# (not at #SBATCH submission time, which can't be made conditional) so this
+# script adapts to whatever hardware it actually lands on: 2+ GPUs (the
+# original cluster setup) runs monomial/legendre in parallel; 1 GPU or none
+# runs them serially instead of failing outright.
+if command -v nvidia-smi &> /dev/null; then
+    nvidia-smi --query-gpu=index,name,memory.total,memory.used --format=csv
+    NUM_GPUS=$(nvidia-smi -L | wc -l)
+else
+    echo "nvidia-smi not found -- assuming no GPU (CPU-only run)."
+    NUM_GPUS=0
+fi
+echo "Detected ${NUM_GPUS} GPU(s) -- $([ "${NUM_GPUS}" -ge 2 ] && echo 'running monomial/legendre in parallel' || echo 'running serially')."
 
 # Table 5 (ELM/CDR/DCR neural ODE surrogate results), via train_surrogate_node.py.
 # Mirrors run_table6_seeds.sh's structure and protocol (degree=3, 5 seeds,
@@ -50,13 +66,21 @@ EARLY_STOP_PATIENCE=5
 
 mkdir -p results
 
-# For each dataset: 3 basis conditions x 5 seeds = 15 runs. Same pattern as
-# run_table6_seeds.sh -- monomial (GPU 0) + legendre (GPU 1) in parallel,
-# then static baseline alone on GPU 0. Background launches stay INLINE (not
-# wrapped in a function/subshell) -- `wait $PID` cannot reliably track a PID
-# backgrounded inside a subshell (verified failure mode, see
+# For each dataset: 3 basis conditions x 5 seeds = 15 runs. With 2+ GPUs,
+# monomial (GPU 0) + legendre (GPU 1) run in parallel, then static baseline
+# alone on GPU 0. With fewer than 2 GPUs (1 GPU, or CPU-only), monomial and
+# legendre both use GPU 0 (or CPU) and run one after the other instead --
+# slower, but the script still completes on any machine rather than
+# requiring exactly the original cluster setup. Background launches stay
+# INLINE (not wrapped in a function/subshell) -- `wait $PID` cannot reliably
+# track a PID backgrounded inside a subshell (verified failure mode, see
 # run_table4_degrees.sh / run_table6_seeds.sh comments).
 OVERALL_STATUS=0
+if [ "${NUM_GPUS}" -ge 2 ]; then
+    GPU_LEG=1
+else
+    GPU_LEG=0
+fi
 
 for DATASET in ${DATASETS}; do
     echo ""
@@ -64,7 +88,7 @@ for DATASET in ${DATASETS}; do
 
     for SEED in 0 1 2 3 4; do
         echo ""
-        echo "===== ${DATASET}, Seed ${SEED}: launching monomial (GPU 0) + legendre (GPU 1) ====="
+        echo "===== ${DATASET}, Seed ${SEED}: launching monomial (GPU 0) + legendre (GPU ${GPU_LEG}) ====="
 
         # --- monomial run: GPU 0 ---
         BASIS="monomial"
@@ -84,7 +108,13 @@ for DATASET in ${DATASETS}; do
             &> "${LOG}" &
         PID_MONO=$!
 
-        # --- legendre run: GPU 1 ---
+        # If fewer than 2 GPUs, wait for monomial to finish before starting
+        # legendre -- they'd otherwise contend for the same device.
+        if [ "${NUM_GPUS}" -lt 2 ]; then
+            wait ${PID_MONO} || { echo "${DATASET} seed ${SEED} monomial run FAILED"; OVERALL_STATUS=1; }
+        fi
+
+        # --- legendre run: GPU ${GPU_LEG} ---
         BASIS="legendre"
         LOG="results/slurm-${SLURM_JOB_ID}-${DATASET}-${BASIS}-degree-${DEGREE}-seed${SEED}.log"
         python3 -u train_surrogate_node.py \
@@ -98,14 +128,19 @@ for DATASET in ${DATASETS}; do
             --lr_decay_gamma ${LR_DECAY_GAMMA} \
             --early_stop_patience ${EARLY_STOP_PATIENCE} \
             --results_json "results/results_table5_${DATASET}_${BASIS}_d${DEGREE}_seed${SEED}.json" \
-            --gpu 1 \
+            --gpu ${GPU_LEG} \
             &> "${LOG}" &
         PID_LEG=$!
 
-        echo "Launched monomial run (PID ${PID_MONO}) on GPU 0, ${DATASET}, seed ${SEED}"
-        echo "Launched legendre run (PID ${PID_LEG}) on GPU 1, ${DATASET}, seed ${SEED}"
+        echo "Launched legendre run (PID ${PID_LEG}) on GPU ${GPU_LEG}, ${DATASET}, seed ${SEED}"
 
-        wait ${PID_MONO} || { echo "${DATASET} seed ${SEED} monomial run FAILED"; OVERALL_STATUS=1; }
+        # PID_MONO was already awaited above when running serially (< 2
+        # GPUs); only wait for it here in the true-parallel (2+ GPU) case,
+        # since `wait` on an already-reaped PID is an error in bash, not a
+        # no-op, and would falsely report this run as FAILED.
+        if [ "${NUM_GPUS}" -ge 2 ]; then
+            wait ${PID_MONO} || { echo "${DATASET} seed ${SEED} monomial run FAILED"; OVERALL_STATUS=1; }
+        fi
         wait ${PID_LEG}  || { echo "${DATASET} seed ${SEED} legendre run FAILED"; OVERALL_STATUS=1; }
         echo "===== ${DATASET}, Seed ${SEED}: monomial + legendre complete ====="
 

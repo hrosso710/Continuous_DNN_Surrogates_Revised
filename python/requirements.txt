@@ -1,0 +1,14 @@
+# Dependencies for the Python pipeline (python/stationary_ode/ and
+# python/surrogate/). Install with: pip install -r requirements.txt
+#
+# No version pins are enforced here since exact tested versions weren't
+# recorded; if you hit a compatibility issue, note the working versions
+# here for future reproducibility.
+
+numpy
+scipy
+torch
+torchdiffeq
+tqdm
+matplotlib
+pandas
