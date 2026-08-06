@@ -26,6 +26,18 @@ import sys
 
 import matplotlib
 matplotlib.use('Agg')
+matplotlib.rcParams['text.usetex'] = False  # no LaTeX install required
+matplotlib.rcParams['mathtext.fontset'] = 'cm'  # Computer Modern for math (bundled with matplotlib)
+matplotlib.rcParams['font.family'] = 'serif'
+matplotlib.rcParams['font.serif'] = ['cmr10', 'Computer Modern Roman', 'DejaVu Serif']
+matplotlib.rcParams['axes.formatter.use_mathtext'] = True  # keep axis-tick numerals in the same font family
+matplotlib.rcParams['font.size'] = 15
+matplotlib.rcParams['axes.titlesize'] = 16
+matplotlib.rcParams['axes.labelsize'] = 15
+matplotlib.rcParams['xtick.labelsize'] = 13
+matplotlib.rcParams['ytick.labelsize'] = 13
+matplotlib.rcParams['legend.fontsize'] = 13
+matplotlib.rcParams['figure.titlesize'] = 18
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -119,7 +131,7 @@ def panel2_jacobian(ax, basis, func, true_y, val_end_idx, color):
         eigs = torch.linalg.eigvals(J)
         max_res.append(eigs.real.max().item())
     ts_sampled = t_test[::5].numpy()
-    ax.plot(ts_sampled, max_res, label=basis, color=color, lw=2, marker='o', markersize=3)
+    ax.plot(ts_sampled, max_res, label=basis, color=color, lw=2, marker='o', markersize=4)
     return pred_test, t_test
 
 
@@ -141,7 +153,7 @@ def main():
     true_y_test = true_y[val_end_idx:].squeeze(1)
 
     colors = {'monomial': 'tab:orange', 'legendre': 'tab:blue'}
-    fig, axes = plt.subplots(1, 3, figsize=(16, 4.5))
+    fig, axes = plt.subplots(1, 3, figsize=(19, 5.5))
 
     for basis in ['monomial', 'legendre']:
         func, sd, d, ckpt = load_func(basis, args.degree, args.seed)
@@ -152,28 +164,28 @@ def main():
     ax = axes[0]
     ax.axvline(TRAIN_END_T, color='gray', ls='--', lw=1)
     ax.axvline(VAL_END_T, color='gray', ls='--', lw=1)
-    ax.text(TRAIN_END_T, ax.get_ylim()[1], ' train/val', va='top', fontsize=8, color='gray')
-    ax.text(VAL_END_T, ax.get_ylim()[1], ' val/test', va='top', fontsize=8, color='gray')
+    ax.text(TRAIN_END_T, ax.get_ylim()[1], ' train/val', va='top', fontsize=14, color='gray')
+    ax.text(VAL_END_T, ax.get_ylim()[1], ' val/test', va='top', fontsize=14, color='gray')
     ax.set_xlabel('absolute time $t$')
     ax.set_ylabel(r'$\|\theta_{NODE}(t)\|$')
     ax.set_title('(a) Weight trajectory magnitude\n(no blow-up in either basis)')
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=16)
 
     ax = axes[1]
     ax.axhline(0, color='gray', ls=':', lw=1)
     ax.set_xlabel('absolute time $t$ (test region)')
     ax.set_ylabel(r'max Re(eig($\partial f/\partial u$))')
     ax.set_title('(b) Local Jacobian stability\n(legendre more stable, not less)')
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=16)
 
     ax = axes[2]
     ax.set_xlabel('$t - 20$ (time since test region start)')
     ax.set_ylabel('pointwise relative error')
     ax.set_title('(c) Error growth over test window\n(smooth compounding, not a jump)')
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=16)
 
     fig.suptitle(f'Diagnosing the Legendre vs. monomial test-region error gap '
-                 f'(degree={args.degree}, seed={args.seed})', fontsize=12, y=1.03)
+                 f'(degree={args.degree}, seed={args.seed})', fontsize=20, y=1.05)
     fig.tight_layout()
     out_path = f'diagnostic_figure_d{args.degree}_seed{args.seed}.png'
     fig.savefig(out_path, dpi=150, bbox_inches='tight')
