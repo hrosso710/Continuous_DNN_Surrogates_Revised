@@ -7,6 +7,8 @@
 #SBATCH -o slurm-%j.out
 #SBATCH -e slurm-%j.err
 
+#SBATCH --nodelist=zuber
+
 set -euo pipefail
 
 # Resolves to this script's own directory, regardless of where the repo is

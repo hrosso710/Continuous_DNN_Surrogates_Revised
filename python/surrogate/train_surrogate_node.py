@@ -183,7 +183,12 @@ class SurrogateODENet(nn.Module):
         if basis == 'none':
             self.func = func
         else:
-            self.func = TimeParameterizedNet(func, tspan=[0.0, T], basis=basis, d=degree)
+            # BUG FIX (same issue as python/stationary_ode/ode_demo_NEW.py):
+            # TimeParameterizedNet's `d` is the NUMBER OF BASIS FUNCTIONS
+            # (max power t^(d-1)), so a genuine degree-D polynomial needs
+            # d=D+1. This was previously called with d=degree directly, so
+            # every "degree D" run here was actually fitting degree D-1.
+            self.func = TimeParameterizedNet(func, tspan=[0.0, T], basis=basis, d=degree + 1)
         self.readout = nn.Linear(nc, output_dim)
         self.T = T
         self.odeint_fn = odeint_fn
