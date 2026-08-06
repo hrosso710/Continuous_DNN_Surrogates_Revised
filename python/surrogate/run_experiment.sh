@@ -9,17 +9,18 @@
 
 set -euo pipefail
 
-# Resolves to this script's own directory, regardless of where the repo is
-# cloned or what directory `sbatch` was invoked from -- no hardcoded path.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Activate your own Python environment BEFORE submitting this job -- see the
+export PYTHONPATH="$(dirname "$SCRIPT_DIR"):${PYTHONPATH:-}"
+
+# Activate your own Python environment BEFORE submitting this job: see the
 # note in stationary_ode/run_experiment.sh for why this isn't hardcoded here.
 
 # Not every environment this runs in is SLURM (reviewers reproducing results
-# locally won't have SLURM_JOB_ID set at all), and not every machine has an
-# NVIDIA GPU. Both are made optional below rather than assumed.
+# locally won't have SLURM_JOB_ID), and not every machine has an
+# NVIDIA GPU. Both are made optional below.
+
 SLURM_JOB_ID="${SLURM_JOB_ID:-local}"
 
 echo "Job ID: ${SLURM_JOB_ID}"
@@ -31,6 +32,7 @@ echo "GPUs visible: ${CUDA_VISIBLE_DEVICES:-none}"
 # script adapts to whatever hardware it actually lands on: 2+ GPUs (the
 # original cluster setup) runs monomial/legendre in parallel; 1 GPU or none
 # runs them serially instead of failing outright.
+
 if command -v nvidia-smi &> /dev/null; then
     nvidia-smi --query-gpu=index,name,memory.total,memory.used --format=csv
     NUM_GPUS=$(nvidia-smi -L | wc -l)
@@ -40,25 +42,14 @@ else
 fi
 echo "Detected ${NUM_GPUS} GPU(s) -- $([ "${NUM_GPUS}" -ge 2 ] && echo 'running monomial/legendre in parallel' || echo 'running serially')."
 
-# Table 5 (ELM/CDR/DCR neural ODE surrogate results), via train_surrogate_node.py.
-# Mirrors run_table6_seeds.sh's structure and protocol (degree=3, 5 seeds,
-# static/monomial/legendre) -- ASSUMPTION, not yet confirmed against a
-# manuscript draft of Table 5. Change DEGREE/SEEDS below if that's wrong.
-#
-# Path to the directory containing NNERDS.mat, CDR_Data.mat, DCR_Data.mat.
-# Sits alongside train_surrogate_node.py (matches its own --data_dir
-# default) -- works for anyone who clones the repo and cd's into
-# python/surrogate/ before running, regardless of where the repo itself
-# lives on disk.
+# This code produces Table 4 (ELM/CDR/DCR neural ODE surrogate results), via train_surrogate_node.py.
+# DATA_DIR is the path to the directory containing NNERDS.mat, CDR_Data.mat, DCR_Data.mat.
+
 DATA_DIR="data"
 
 DEGREE=3
 DATASETS="ELM CDR DCR"
 
-# batch_size/niters/test_freq are train_surrogate_node.py's defaults
-# (20/2000/20) -- these were only smoke-tested on synthetic data, not real
-# ELM/CDR/DCR signal. Worth a single real-data smoke run before trusting
-# this full sweep (see conversation notes).
 GRAD_CLIP=1.0
 LR_DECAY_EVERY=500
 LR_DECAY_GAMMA=0.5
@@ -66,15 +57,6 @@ EARLY_STOP_PATIENCE=5
 
 mkdir -p results
 
-# For each dataset: 3 basis conditions x 5 seeds = 15 runs. With 2+ GPUs,
-# monomial (GPU 0) + legendre (GPU 1) run in parallel, then static baseline
-# alone on GPU 0. With fewer than 2 GPUs (1 GPU, or CPU-only), monomial and
-# legendre both use GPU 0 (or CPU) and run one after the other instead --
-# slower, but the script still completes on any machine rather than
-# requiring exactly the original cluster setup. Background launches stay
-# INLINE (not wrapped in a function/subshell) -- `wait $PID` cannot reliably
-# track a PID backgrounded inside a subshell (verified failure mode, see
-# run_table4_degrees.sh / run_table6_seeds.sh comments).
 OVERALL_STATUS=0
 if [ "${NUM_GPUS}" -ge 2 ]; then
     GPU_LEG=1
@@ -108,8 +90,6 @@ for DATASET in ${DATASETS}; do
             &> "${LOG}" &
         PID_MONO=$!
 
-        # If fewer than 2 GPUs, wait for monomial to finish before starting
-        # legendre -- they'd otherwise contend for the same device.
         if [ "${NUM_GPUS}" -lt 2 ]; then
             wait ${PID_MONO} || { echo "${DATASET} seed ${SEED} monomial run FAILED"; OVERALL_STATUS=1; }
         fi
@@ -133,11 +113,7 @@ for DATASET in ${DATASETS}; do
         PID_LEG=$!
 
         echo "Launched legendre run (PID ${PID_LEG}) on GPU ${GPU_LEG}, ${DATASET}, seed ${SEED}"
-
-        # PID_MONO was already awaited above when running serially (< 2
-        # GPUs); only wait for it here in the true-parallel (2+ GPU) case,
-        # since `wait` on an already-reaped PID is an error in bash, not a
-        # no-op, and would falsely report this run as FAILED.
+        
         if [ "${NUM_GPUS}" -ge 2 ]; then
             wait ${PID_MONO} || { echo "${DATASET} seed ${SEED} monomial run FAILED"; OVERALL_STATUS=1; }
         fi
@@ -170,7 +146,7 @@ for DATASET in ${DATASETS}; do
 done
 
 echo ""
-echo "All datasets x seeds x bases complete (45 runs total). Aggregation script"
-echo "(aggregate_table5.py) not yet written -- results are in results/results_table5_*.json."
+echo "All datasets x seeds x bases complete (45 runs total)."
+echo "Run 'python3 aggregate_table5.py --results_dir results' to aggregate."
 
 exit ${OVERALL_STATUS}

@@ -1,7 +1,7 @@
 """
 Analysis utilities for PROCESSING completed experiment results (loading and
-aggregating the JSON summaries written by ode_demo_NEW.py / the future
-surrogate-dataset experiment script).
+aggregating the JSON summaries written by stationary_ode/ode_demo_NEW.py and
+surrogate/train_surrogate_node.py).
 
 For utilities used while RUNNING an experiment, see experiment_runtime.py.
 """
@@ -20,7 +20,7 @@ def load_run_json(path: str) -> dict:
         return json.load(f)
 
 
-def load_all_results(results_dir: str, pattern: str = "results_table4_*.json") -> pd.DataFrame:
+def load_all_results(results_dir: str, pattern: str = "results_table3_*.json") -> pd.DataFrame:
     """
     Load every run summary matching `pattern` under `results_dir` into one
     DataFrame, one row per run. Matches the field names ode_demo_NEW.py
@@ -51,7 +51,7 @@ def summarize_by_config(
 ) -> pd.DataFrame:
     """
     Aggregate mean +/- std across seeds for each (basis, degree) config --
-    the shape Table 4/6 need: one row per config, mean/std over the 5 seeds.
+    the shape Table 3 needs: one row per config, mean/std over the 5 seeds.
     """
     if group_cols is None:
         group_cols = ['basis', 'degree']

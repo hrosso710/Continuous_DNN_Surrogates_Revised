@@ -1,0 +1,40 @@
+The device being used is cpu.
+Dataset: ELM | Seed: 0 | Basis: monomial | Degree: 3 | T: 1.0
+Split sizes: train=1740 val=497 test=249 | input_dim=15 output_dim=10
+Trainable Parameters: 5095
+Iter 0020 | Val RelErr: 0.391856
+Iter 0040 | Val RelErr: 0.327729
+Iter 0060 | Val RelErr: 0.306243
+Iter 0080 | Val RelErr: 0.294094
+Iter 0100 | Val RelErr: 0.292208
+Iter 0120 | Val RelErr: 0.292887
+  No improvement (1/5 checks since last best)
+Iter 0140 | Val RelErr: 0.288771
+Iter 0160 | Val RelErr: 0.294078
+  No improvement (1/5 checks since last best)
+Iter 0180 | Val RelErr: 0.300174
+  No improvement (2/5 checks since last best)
+Iter 0200 | Val RelErr: 0.293961
+  No improvement (3/5 checks since last best)
+Iter 0220 | Val RelErr: 0.288629
+Iter 0240 | Val RelErr: 0.289056
+  No improvement (1/5 checks since last best)
+Iter 0260 | Val RelErr: 0.290849
+  No improvement (2/5 checks since last best)
+Iter 0280 | Val RelErr: 0.314177
+  No improvement (3/5 checks since last best)
+Iter 0300 | Val RelErr: 0.289977
+  No improvement (4/5 checks since last best)
+Iter 0320 | Val RelErr: 0.308074
+  No improvement (5/5 checks since last best)
+
+Early stopping triggered at iter 320 (no improvement for 5 consecutive val checks). Reporting best checkpoint from iter 220.
+Evaluating TRAIN region: 0 calls [00:00, ? calls/s]Evaluating TRAIN region (done, 212 calls): : 0 calls [00:35, ? calls/s]Evaluating TRAIN region (done, 212 calls): : 0 calls [00:35, ? calls/s]
+Evaluating VAL region: 0 calls [00:00, ? calls/s]Evaluating VAL region (done, 242 calls): : 0 calls [00:10, ? calls/s]Evaluating VAL region (done, 242 calls): : 0 calls [00:10, ? calls/s]
+Evaluating TEST region (held out): 0 calls [00:00, ? calls/s]Evaluating TEST region (held out) (done, 248 calls): : 0 calls [00:05, ? calls/s]Evaluating TEST region (held out) (done, 248 calls): : 0 calls [00:05, ? calls/s]
+
+Training complete (stopped_early=True, best_iter=220).
+  TRAIN relerr: 0.295616 (NFE: 212)
+  VAL   relerr: 0.288629 (NFE: 242)  [selection criterion]
+  TEST  relerr: 0.277916 (NFE: 248)  [held out, reported once]
+Saved run summary to results/results_table5_ELM_monomial_d3_seed0.json

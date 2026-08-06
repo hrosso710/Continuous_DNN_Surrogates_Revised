@@ -1,0 +1,38 @@
+The device being used is cpu.
+Dataset: ELM | Seed: 1 | Basis: none | Degree: 3 | T: 1.0
+Split sizes: train=1740 val=497 test=249 | input_dim=15 output_dim=10
+Using STATIC (identity) baseline -- no time-parameterization.
+Trainable Parameters: 1965
+Iter 0020 | Val RelErr: 0.379825
+Iter 0040 | Val RelErr: 0.330838
+Iter 0060 | Val RelErr: 0.288904
+Iter 0080 | Val RelErr: 0.304734
+  No improvement (1/5 checks since last best)
+Iter 0100 | Val RelErr: 0.290365
+  No improvement (2/5 checks since last best)
+Iter 0120 | Val RelErr: 0.290986
+  No improvement (3/5 checks since last best)
+Iter 0140 | Val RelErr: 0.295389
+  No improvement (4/5 checks since last best)
+Iter 0160 | Val RelErr: 0.287717
+Iter 0180 | Val RelErr: 0.291313
+  No improvement (1/5 checks since last best)
+Iter 0200 | Val RelErr: 0.293039
+  No improvement (2/5 checks since last best)
+Iter 0220 | Val RelErr: 0.297896
+  No improvement (3/5 checks since last best)
+Iter 0240 | Val RelErr: 0.289840
+  No improvement (4/5 checks since last best)
+Iter 0260 | Val RelErr: 0.291743
+  No improvement (5/5 checks since last best)
+
+Early stopping triggered at iter 260 (no improvement for 5 consecutive val checks). Reporting best checkpoint from iter 160.
+Evaluating TRAIN region: 0 calls [00:00, ? calls/s]Evaluating TRAIN region (done, 98 calls): : 0 calls [00:00, ? calls/s]Evaluating TRAIN region (done, 98 calls): : 0 calls [00:00, ? calls/s]
+Evaluating VAL region: 0 calls [00:00, ? calls/s]Evaluating VAL region (done, 98 calls): : 0 calls [00:00, ? calls/s]Evaluating VAL region (done, 98 calls): : 0 calls [00:00, ? calls/s]
+Evaluating TEST region (held out): 0 calls [00:00, ? calls/s]Evaluating TEST region (held out) (done, 98 calls): : 0 calls [00:00, ? calls/s]Evaluating TEST region (held out) (done, 98 calls): : 0 calls [00:00, ? calls/s]
+
+Training complete (stopped_early=True, best_iter=160).
+  TRAIN relerr: 0.291621 (NFE: 98)
+  VAL   relerr: 0.287717 (NFE: 98)  [selection criterion]
+  TEST  relerr: 0.275149 (NFE: 98)  [held out, reported once]
+Saved run summary to results/results_table5_ELM_none_d3_seed1.json

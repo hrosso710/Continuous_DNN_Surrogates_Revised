@@ -1,6 +1,6 @@
 # MATLAB: discretize-then-optimize ResNet/Hamiltonian experiments
 
-Reproduces Table 2, Table 3, and Figures 1–5.
+Reproduces Table 2 and Figures 2-3.
 
 ## Directory layout
 
@@ -38,6 +38,8 @@ Arguments: `dynamic` (`'ResNN'`, `'hamiltonian'`, `'leapfrog'`, `'antiSym-ResNN'
 
 ### Running the full Table 2 sweep
 
+UPDATE
+
 ```matlab
 run_all_table2   % all 18 (dataset, T, optimizer) groups, 12 configs each; calls collectResults() at the end
 ```
@@ -58,9 +60,4 @@ Produces, inside `results/`:
 - `summary_all_runs.csv` — one row per completed run, all metrics and provenance
 - `table2_pivot.csv` — Table 2-shaped pivot (dataset × T × basis → architecture × optimizer), with blank cells marking runs not yet completed
 - `tikzdata/*.dat` — per-iteration train/validation loss traces for Figures 2–5 (ADAM/sgd, T=1 runs only)
-
-## Notes on optimizers
-
-- **ADAM (`'sgd'`)**: trains both the dynamics parameters (`theta`) and the linear readout (`W`) jointly. `W` is warm-started via closed-form ridge regression at the initial `theta` (rather than a raw random draw) and both `theta` and `W` are Tikhonov-regularized with the same `alpha1`/`alpha2` weights GNvpro uses — see the comments in `runExperiment_v2.m`'s `sgd` branch for the full rationale.
-- **GNvpro**: a Gauss-Newton variable-projection method that solves for `W` in closed form at each outer iteration.
 

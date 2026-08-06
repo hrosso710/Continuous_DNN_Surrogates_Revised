@@ -7,8 +7,8 @@ Mirrors the structural convention of the advisor's rampde paper/ directory
 adapted to this paper's experiments.
 
 Experiments processed:
-- stationary_ode: Table 4, Table 6, Figure 6-adjacent stationary-ODE results
-  (Figure 6 itself and Table 5 come from the surrogate/ experiment once added)
+- stationary_ode: Table 3, Figure 5
+- surrogate: Table 4
 
 Usage:
     python process_all_results.py [--experiments EXPS]
@@ -40,7 +40,7 @@ def run_experiment_script(experiment: str, script_path: Path) -> bool:
 def main():
     parser = argparse.ArgumentParser(description="Process all Python-side experiment results")
     parser.add_argument(
-        "--experiments", type=str, default="stationary_ode",
+        "--experiments", type=str, default="stationary_ode,surrogate",
         help="Comma-separated experiment list (default: all available)"
     )
     args = parser.parse_args()

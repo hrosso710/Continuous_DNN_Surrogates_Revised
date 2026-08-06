@@ -1,0 +1,31 @@
+The device being used is cpu.
+Dataset: ELM | Seed: 4 | Basis: legendre | Degree: 3 | T: 1.0
+Split sizes: train=1740 val=497 test=249 | input_dim=15 output_dim=10
+Trainable Parameters: 5095
+Iter 0020 | Val RelErr: 0.358703
+Iter 0040 | Val RelErr: 0.311062
+Iter 0060 | Val RelErr: 0.310426
+Iter 0080 | Val RelErr: 0.302881
+Iter 0100 | Val RelErr: 0.288484
+Iter 0120 | Val RelErr: 0.284774
+Iter 0140 | Val RelErr: 0.294732
+  No improvement (1/5 checks since last best)
+Iter 0160 | Val RelErr: 0.335563
+  No improvement (2/5 checks since last best)
+Iter 0180 | Val RelErr: 0.295531
+  No improvement (3/5 checks since last best)
+Iter 0200 | Val RelErr: 0.301597
+  No improvement (4/5 checks since last best)
+Iter 0220 | Val RelErr: 0.289474
+  No improvement (5/5 checks since last best)
+
+Early stopping triggered at iter 220 (no improvement for 5 consecutive val checks). Reporting best checkpoint from iter 120.
+Evaluating TRAIN region: 0 calls [00:00, ? calls/s]Evaluating TRAIN region (done, 224 calls): : 0 calls [00:34, ? calls/s]Evaluating TRAIN region (done, 224 calls): : 0 calls [00:34, ? calls/s]
+Evaluating VAL region: 0 calls [00:00, ? calls/s]Evaluating VAL region (done, 218 calls): : 0 calls [00:09, ? calls/s]Evaluating VAL region (done, 218 calls): : 0 calls [00:09, ? calls/s]
+Evaluating TEST region (held out): 0 calls [00:00, ? calls/s]Evaluating TEST region (held out) (done, 230 calls): : 0 calls [00:04, ? calls/s]Evaluating TEST region (held out) (done, 230 calls): : 0 calls [00:04, ? calls/s]
+
+Training complete (stopped_early=True, best_iter=120).
+  TRAIN relerr: 0.292895 (NFE: 224)
+  VAL   relerr: 0.284774 (NFE: 218)  [selection criterion]
+  TEST  relerr: 0.275324 (NFE: 230)  [held out, reported once]
+Saved run summary to results/results_table5_ELM_legendre_d3_seed4.json

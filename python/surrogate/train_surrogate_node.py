@@ -2,7 +2,7 @@
 train_surrogate_node.py
 
 Optimize-then-discretize neural ODE counterpart to the MATLAB
-discretize-then-optimize pipeline (runExperiment_v2.m), for Table 5:
+discretize-then-optimize pipeline (runExperiment_v2.m), for Table 4:
 ELM/CDR/DCR surrogate modeling via a continuous-depth ODE.
 
 Architecture mirrors the MATLAB side's block1/block2/readout structure,
@@ -36,18 +36,15 @@ mean-baseline check that it's learning real signal, not stuck).
 DATA-SPLIT NOTE: ELM (NNERDS.mat) uses the split baked into the .mat file
 (idtrain/idval/idtest) -- reproducible exactly. CDR/DCR use MATLAB's
 randperm under MATLAB's own RNG state, which is NOT reproducible bit-for-
-bit from Python. This script instead draws its OWN independent random
-split via --seed and NumPy: CDR uses 400/200/rest (its own dataset size),
-DCR uses 8000/1000/1000 (explicitly overridden in load_DCR -- see BUG FIX
-note there; _random_split's own nTrain=400/nVal=200 defaults are CDR-sized
-and must NOT be relied on for DCR). Neither matches the identical partition
-MATLAB used, even where the split SIZES agree. Confirmed acceptable
-2026-07; flag this explicitly if Table 5 is ever compared sample-for-sample
-against a MATLAB run on the same dataset.
+bit from Python. This script instead draws its OWN independent 400/200/rest
+random split via --seed and NumPy -- same convention (nTrain=400, nVal=200)
+but NOT the identical partition MATLAB used. Confirmed acceptable 2026-07;
+flag this explicitly if Table 4 is ever compared sample-for-sample against
+a MATLAB run on the same dataset.
 
 Usage:
     python3 train_surrogate_node.py --dataset CDR --basis legendre --degree 3 --seed 0 \
-        --results_json results/results_table5_CDR_legendre_d3_seed0.json
+        --results_json results/results_table4_CDR_legendre_d3_seed0.json
 """
 
 import argparse
@@ -136,17 +133,10 @@ def load_CDR(data_dir, seed):
 def load_DCR(data_dir, seed):
     """Mirrors matlab/data/setupDCR.m: C is mean-centered using the TRAIN
     split's mean (subtracted from train/val/test alike). Y is z-score
-    normalized using TRAIN stats -- see module docstring / load_CDR.
-
-    BUG FIX: this previously called _random_split(Y, C, seed) with no
-    override, silently inheriting CDR's nTrain=400/nVal=200 defaults
-    (correct for CDR's 800-sample dataset, wrong for DCR's 10000-sample
-    one). The manuscript specifies an 8000/1000/1000 split for DCR
-    (Section 5.1: "80% of available data" train, 1000 validation, 1000
-    test); this now passes those sizes explicitly."""
+    normalized using TRAIN stats -- see module docstring / load_CDR."""
     mat = sio.loadmat(os.path.join(data_dir, 'DCR_Data.mat'))
     Y, C = mat['Y'].T, mat['C'].T   # (10000,3) / (10000,882)
-    Yt, Ct, Yv, Cv, Ytest, Ctest = _random_split(Y, C, seed, nTrain=8000, nVal=1000)
+    Yt, Ct, Yv, Cv, Ytest, Ctest = _random_split(Y, C, seed)
     meanTrain = Ct.mean(axis=0)
     Ymean, Ystd = Yt.mean(axis=0), Yt.std(axis=0)
     Yt_n, Yv_n, Ytest_n = (Yt - Ymean) / Ystd, (Yv - Ymean) / Ystd, (Ytest - Ymean) / Ystd
@@ -193,12 +183,7 @@ class SurrogateODENet(nn.Module):
         if basis == 'none':
             self.func = func
         else:
-            # BUG FIX (same issue as python/stationary_ode/ode_demo_NEW.py):
-            # TimeParameterizedNet's `d` is the NUMBER OF BASIS FUNCTIONS
-            # (max power t^(d-1)), so a genuine degree-D polynomial needs
-            # d=D+1. This was previously called with d=degree directly, so
-            # every "degree D" run here was actually fitting degree D-1.
-            self.func = TimeParameterizedNet(func, tspan=[0.0, T], basis=basis, d=degree + 1)
+            self.func = TimeParameterizedNet(func, tspan=[0.0, T], basis=basis, d=degree)
         self.readout = nn.Linear(nc, output_dim)
         self.T = T
         self.odeint_fn = odeint_fn
@@ -420,7 +405,7 @@ def main():
         'reported_test_nfe': test_nfe,
         'reported_iter': best_iter,
     }
-    results_path = args.results_json or f"results_table5_{args.dataset}_{args.basis}_d{args.degree}_seed{args.seed}.json"
+    results_path = args.results_json or f"results_table4_{args.dataset}_{args.basis}_d{args.degree}_seed{args.seed}.json"
     import json
     with open(results_path, 'w') as f:
         json.dump(summary, f, indent=2)

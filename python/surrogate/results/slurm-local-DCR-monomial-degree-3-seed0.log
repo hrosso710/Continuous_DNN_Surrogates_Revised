@@ -1,0 +1,34 @@
+The device being used is cpu.
+Dataset: DCR | Seed: 0 | Basis: monomial | Degree: 3 | T: 1.0
+Split sizes: train=400 val=200 test=9400 | input_dim=3 output_dim=882
+Trainable Parameters: 18867
+Traceback (most recent call last):
+  File "/Users/haleyrosso/Documents/Continuous_DNN_Surrogates_Revised/python/surrogate/train_surrogate_node.py", line 416, in <module>
+    main()
+  File "/Users/haleyrosso/Documents/Continuous_DNN_Surrogates_Revised/python/surrogate/train_surrogate_node.py", line 325, in main
+    Cb_hat = model(Yb)
+  File "/Users/haleyrosso/Library/Python/3.9/lib/python/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/Users/haleyrosso/Library/Python/3.9/lib/python/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/haleyrosso/Documents/Continuous_DNN_Surrogates_Revised/python/surrogate/train_surrogate_node.py", line 198, in forward
+    zT = self.odeint_fn(func, z0, t_span, method=self.method,
+  File "/Users/haleyrosso/Library/Python/3.9/lib/python/site-packages/torchdiffeq/_impl/odeint.py", line 80, in odeint
+    solution = solver.integrate(t)
+  File "/Users/haleyrosso/Library/Python/3.9/lib/python/site-packages/torchdiffeq/_impl/solvers.py", line 32, in integrate
+    self._before_integrate(t)
+  File "/Users/haleyrosso/Library/Python/3.9/lib/python/site-packages/torchdiffeq/_impl/rk_common.py", line 213, in _before_integrate
+    f0 = self.func(t[0], self.y0)
+  File "/Users/haleyrosso/Library/Python/3.9/lib/python/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/Users/haleyrosso/Library/Python/3.9/lib/python/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/haleyrosso/Library/Python/3.9/lib/python/site-packages/torchdiffeq/_impl/misc.py", line 197, in forward
+    return self.base_func(t, y)
+  File "/Users/haleyrosso/Library/Python/3.9/lib/python/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/Users/haleyrosso/Library/Python/3.9/lib/python/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/Users/haleyrosso/Documents/Continuous_DNN_Surrogates_Revised/python/timeparam_NEW.py", line 193, in forward
+    a_i = a[i]  # (d,)
+NameError: name 'a' is not defined

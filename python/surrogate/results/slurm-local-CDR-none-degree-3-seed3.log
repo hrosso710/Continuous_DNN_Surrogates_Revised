@@ -1,0 +1,63 @@
+The device being used is cpu.
+Dataset: CDR | Seed: 3 | Basis: none | Degree: 3 | T: 1.0
+Split sizes: train=400 val=200 test=200 | input_dim=55 output_dim=72
+Using STATIC (identity) baseline -- no time-parameterization.
+Trainable Parameters: 3557
+Iter 0020 | Val RelErr: 0.634212
+Iter 0040 | Val RelErr: 0.307371
+Iter 0060 | Val RelErr: 0.215727
+Iter 0080 | Val RelErr: 0.131366
+Iter 0100 | Val RelErr: 0.092606
+Iter 0120 | Val RelErr: 0.075611
+Iter 0140 | Val RelErr: 0.061449
+Iter 0160 | Val RelErr: 0.045176
+Iter 0180 | Val RelErr: 0.042879
+Iter 0200 | Val RelErr: 0.036839
+Iter 0220 | Val RelErr: 0.035782
+Iter 0240 | Val RelErr: 0.032339
+Iter 0260 | Val RelErr: 0.046418
+  No improvement (1/5 checks since last best)
+Iter 0280 | Val RelErr: 0.031770
+Iter 0300 | Val RelErr: 0.036513
+  No improvement (1/5 checks since last best)
+Iter 0320 | Val RelErr: 0.030845
+Iter 0340 | Val RelErr: 0.028814
+Iter 0360 | Val RelErr: 0.036624
+  No improvement (1/5 checks since last best)
+Iter 0380 | Val RelErr: 0.029208
+  No improvement (2/5 checks since last best)
+Iter 0400 | Val RelErr: 0.026011
+Iter 0420 | Val RelErr: 0.027402
+  No improvement (1/5 checks since last best)
+Iter 0440 | Val RelErr: 0.024654
+Iter 0460 | Val RelErr: 0.024703
+  No improvement (1/5 checks since last best)
+Iter 0480 | Val RelErr: 0.032024
+  No improvement (2/5 checks since last best)
+Iter 0500 | Val RelErr: 0.023713
+Iter 0520 | Val RelErr: 0.021164
+Iter 0540 | Val RelErr: 0.023899
+  No improvement (1/5 checks since last best)
+Iter 0560 | Val RelErr: 0.021042
+Iter 0580 | Val RelErr: 0.019922
+Iter 0600 | Val RelErr: 0.022712
+  No improvement (1/5 checks since last best)
+Iter 0620 | Val RelErr: 0.020289
+  No improvement (2/5 checks since last best)
+Iter 0640 | Val RelErr: 0.021096
+  No improvement (3/5 checks since last best)
+Iter 0660 | Val RelErr: 0.020813
+  No improvement (4/5 checks since last best)
+Iter 0680 | Val RelErr: 0.020388
+  No improvement (5/5 checks since last best)
+
+Early stopping triggered at iter 680 (no improvement for 5 consecutive val checks). Reporting best checkpoint from iter 580.
+Evaluating TRAIN region: 0 calls [00:00, ? calls/s]Evaluating TRAIN region (done, 92 calls): : 0 calls [00:00, ? calls/s]Evaluating TRAIN region (done, 92 calls): : 0 calls [00:00, ? calls/s]
+Evaluating VAL region: 0 calls [00:00, ? calls/s]Evaluating VAL region (done, 92 calls): : 0 calls [00:00, ? calls/s]Evaluating VAL region (done, 92 calls): : 0 calls [00:00, ? calls/s]
+Evaluating TEST region (held out): 0 calls [00:00, ? calls/s]Evaluating TEST region (held out) (done, 92 calls): : 0 calls [00:00, ? calls/s]Evaluating TEST region (held out) (done, 92 calls): : 0 calls [00:00, ? calls/s]
+
+Training complete (stopped_early=True, best_iter=580).
+  TRAIN relerr: 0.016707 (NFE: 92)
+  VAL   relerr: 0.019922 (NFE: 92)  [selection criterion]
+  TEST  relerr: 0.016654 (NFE: 92)  [held out, reported once]
+Saved run summary to results/results_table5_CDR_none_d3_seed3.json

@@ -1,0 +1,33 @@
+The device being used is cpu.
+Dataset: ELM | Seed: 4 | Basis: none | Degree: 3 | T: 1.0
+Split sizes: train=1740 val=497 test=249 | input_dim=15 output_dim=10
+Using STATIC (identity) baseline -- no time-parameterization.
+Trainable Parameters: 1965
+Iter 0020 | Val RelErr: 0.353550
+Iter 0040 | Val RelErr: 0.308844
+Iter 0060 | Val RelErr: 0.310691
+  No improvement (1/5 checks since last best)
+Iter 0080 | Val RelErr: 0.305423
+Iter 0100 | Val RelErr: 0.286256
+Iter 0120 | Val RelErr: 0.282190
+Iter 0140 | Val RelErr: 0.289266
+  No improvement (1/5 checks since last best)
+Iter 0160 | Val RelErr: 0.304822
+  No improvement (2/5 checks since last best)
+Iter 0180 | Val RelErr: 0.302598
+  No improvement (3/5 checks since last best)
+Iter 0200 | Val RelErr: 0.289224
+  No improvement (4/5 checks since last best)
+Iter 0220 | Val RelErr: 0.285760
+  No improvement (5/5 checks since last best)
+
+Early stopping triggered at iter 220 (no improvement for 5 consecutive val checks). Reporting best checkpoint from iter 120.
+Evaluating TRAIN region: 0 calls [00:00, ? calls/s]Evaluating TRAIN region (done, 110 calls): : 0 calls [00:00, ? calls/s]Evaluating TRAIN region (done, 110 calls): : 0 calls [00:00, ? calls/s]
+Evaluating VAL region: 0 calls [00:00, ? calls/s]Evaluating VAL region (done, 110 calls): : 0 calls [00:00, ? calls/s]Evaluating VAL region (done, 110 calls): : 0 calls [00:00, ? calls/s]
+Evaluating TEST region (held out): 0 calls [00:00, ? calls/s]Evaluating TEST region (held out) (done, 110 calls): : 0 calls [00:00, ? calls/s]Evaluating TEST region (held out) (done, 110 calls): : 0 calls [00:00, ? calls/s]
+
+Training complete (stopped_early=True, best_iter=120).
+  TRAIN relerr: 0.290026 (NFE: 110)
+  VAL   relerr: 0.282190 (NFE: 110)  [selection criterion]
+  TEST  relerr: 0.272587 (NFE: 110)  [held out, reported once]
+Saved run summary to results/results_table5_ELM_none_d3_seed4.json

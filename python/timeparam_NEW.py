@@ -59,30 +59,17 @@ class TimeParameterizedNet(nn.Module):
         self.d = d
         self.basis = basis.lower()
 
-        # BUG FIX (dead parameters): self.net's own original parameters are
-        # never used in forward() -- functional_call() always substitutes the
-        # full current_params dict built from time_params, for every named
-        # parameter. So self.net's raw parameters were vestigial (kept only
-        # as the shape/initial-value template copied into time_params[0]
-        # below), yet were left trainable and thus (a) sat in the optimizer's
-        # parameter list doing nothing, and (b) got included in
-        # `sum(p.numel() for p in func.parameters() if p.requires_grad)`,
-        # silently inflating every reported parameter count in Table 4 by
-        # this net's raw size (252 for the stationary-ODE architecture).
-        # Freezing them here removes both problems with no change to
-        # forward() behavior (they were already functionally inert).
         for param in self.net.parameters():
             param.requires_grad = False
 
-        # 2) Extract the original state of net (including all named_parameters).
+        # Extract the original state of net (including all named_parameters).
         original_state = self.net.state_dict()
 
-        # 3) Create a ParameterDict in which each parameter has shape (d, *orig_shape).
+        # Create a ParameterDict in which each parameter has shape (d, *orig_shape).
         self.time_params = nn.ParameterDict()
 
-        # 4) Keep a mapping from sanitized key -> original key.
-        #    We do this so we can safely store them in time_params,
-        #    but still load them into net with the original key.
+        # Keep a mapping from sanitized key -> original key.
+        # We do this so we can safely store them in time_params, but still load them into net with the original key.
         self.key_mapping = {}
 
         for name, orig_tensor in original_state.items():
@@ -201,16 +188,6 @@ class TimeParameterizedNet(nn.Module):
             t = t.unsqueeze(1)  # shape (batch_size, 1)
         if t.shape[0] != x.shape[0]:
             t = t.expand(x.shape[0], -1)
-
-        # --- BUG FIX: normalize absolute time into [0, 1] before building basis ---
-        t_norm = self._normalize_time(t)
-        a = self._build_basis(t_norm)
-        # ---------------------------------------------------------------------
-
-        # NOTE (unchanged / not part of this fix): this per-sample Python loop is
-        # a separate performance issue (Bug #2) -- each batch element triggers its
-        # own functional_call. Left as-is here since this rewrite only addresses
-        # the time-normalization bug; consider vectorizing with torch.vmap later.
         outputs = []
         for i in range(x.shape[0]):
             a_i = a[i]  # (d,)

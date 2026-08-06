@@ -1,16 +1,16 @@
 """
-aggregate_table5.py
+aggregate_table4.py
 
 Reads the per-run JSON summaries produced by train_surrogate_node.py
-(one per dataset x basis x seed) and aggregates them into a Table-5-shaped
+(one per dataset x basis x seed) and aggregates them into a Table-4-shaped
 mean/std report: mean and standard deviation of TRAIN, VALIDATION, and TEST
 relative error, plus test-region NFE, per (dataset, basis), over 5 seeds.
 
-Mirrors aggregate_table6.py's structure/health-check pattern exactly, with
-a dataset axis added.
+Same structure/health-check pattern as stationary_ode/aggregate_table3.py,
+with a dataset axis added.
 
 Usage:
-    python3 aggregate_table5.py --results_dir results
+    python3 aggregate_table4.py --results_dir results
 """
 
 import argparse
@@ -26,7 +26,7 @@ BASIS_LABELS = {'none': 'static (identity)', 'monomial': 'monomial', 'legendre':
 
 
 def load_results(results_dir):
-    pattern = os.path.join(results_dir, 'results_table5_*.json')
+    pattern = os.path.join(results_dir, 'results_table4_*.json')
     files = sorted(glob.glob(pattern))
     if not files:
         print(f"No result files found matching {pattern}", file=sys.stderr)
@@ -124,7 +124,7 @@ def aggregate(by_dataset_basis):
 
 def print_table(rows):
     print("\n" + "=" * 115)
-    print("TABLE 5 (ELM/CDR/DCR neural ODE surrogate) -- aggregated over seeds, relative error")
+    print("TABLE 4 (ELM/CDR/DCR neural ODE surrogate) -- aggregated over seeds, relative error")
     print("=" * 115)
     header = (f"{'Dataset':<8} {'Basis':<18} {'N':<3} {'Params':<8} {'Train (mean±std)':<20} "
               f"{'Val (mean±std)':<20} {'Test (mean±std)':<20}")
@@ -173,8 +173,8 @@ def main():
     rows, total_problems = aggregate(by_dataset_basis)
     print_table(rows)
 
-    write_csv(rows, os.path.join(args.results_dir, 'table5_results.csv'))
-    write_markdown(rows, os.path.join(args.results_dir, 'table5_results.md'))
+    write_csv(rows, os.path.join(args.results_dir, 'table4_results.csv'))
+    write_markdown(rows, os.path.join(args.results_dir, 'table4_results.md'))
 
     if total_problems > 0:
         print(f"\n[SUMMARY] {total_problems} run(s) did not cleanly early-stop -- review "

@@ -1,0 +1,53 @@
+The device being used is cpu.
+Dataset: DCR | Seed: 4 | Basis: none | Degree: 3 | T: 1.0
+Split sizes: train=400 val=200 test=9400 | input_dim=3 output_dim=882
+Using STATIC (identity) baseline -- no time-parameterization.
+Trainable Parameters: 15737
+Iter 0020 | Val RelErr: 48.331093
+Iter 0040 | Val RelErr: 18.480938
+Iter 0060 | Val RelErr: 14.335498
+Iter 0080 | Val RelErr: 15.789412
+  No improvement (1/5 checks since last best)
+Iter 0100 | Val RelErr: 10.788013
+Iter 0120 | Val RelErr: 10.283911
+Iter 0140 | Val RelErr: 9.644946
+Iter 0160 | Val RelErr: 8.716517
+Iter 0180 | Val RelErr: 6.411955
+Iter 0200 | Val RelErr: 7.449492
+  No improvement (1/5 checks since last best)
+Iter 0220 | Val RelErr: 7.312250
+  No improvement (2/5 checks since last best)
+Iter 0240 | Val RelErr: 6.618882
+  No improvement (3/5 checks since last best)
+Iter 0260 | Val RelErr: 6.204328
+Iter 0280 | Val RelErr: 5.059908
+Iter 0300 | Val RelErr: 5.812168
+  No improvement (1/5 checks since last best)
+Iter 0320 | Val RelErr: 5.673771
+  No improvement (2/5 checks since last best)
+Iter 0340 | Val RelErr: 4.977304
+Iter 0360 | Val RelErr: 5.831332
+  No improvement (1/5 checks since last best)
+Iter 0380 | Val RelErr: 4.757613
+Iter 0400 | Val RelErr: 3.678224
+Iter 0420 | Val RelErr: 4.120567
+  No improvement (1/5 checks since last best)
+Iter 0440 | Val RelErr: 5.371395
+  No improvement (2/5 checks since last best)
+Iter 0460 | Val RelErr: 4.304140
+  No improvement (3/5 checks since last best)
+Iter 0480 | Val RelErr: 3.902725
+  No improvement (4/5 checks since last best)
+Iter 0500 | Val RelErr: 4.399697
+  No improvement (5/5 checks since last best)
+
+Early stopping triggered at iter 500 (no improvement for 5 consecutive val checks). Reporting best checkpoint from iter 400.
+Evaluating TRAIN region: 0 calls [00:00, ? calls/s]Evaluating TRAIN region (done, 182 calls): : 0 calls [00:00, ? calls/s]Evaluating TRAIN region (done, 182 calls): : 0 calls [00:00, ? calls/s]
+Evaluating VAL region: 0 calls [00:00, ? calls/s]Evaluating VAL region (done, 182 calls): : 0 calls [00:00, ? calls/s]Evaluating VAL region (done, 182 calls): : 0 calls [00:00, ? calls/s]
+Evaluating TEST region (held out): 0 calls [00:00, ? calls/s]Evaluating TEST region (held out) (done, 182 calls): : 0 calls [00:00, ? calls/s]Evaluating TEST region (held out) (done, 182 calls): : 0 calls [00:00, ? calls/s]
+
+Training complete (stopped_early=True, best_iter=400).
+  TRAIN relerr: 3.561081 (NFE: 182)
+  VAL   relerr: 3.678224 (NFE: 182)  [selection criterion]
+  TEST  relerr: 3.703392 (NFE: 182)  [held out, reported once]
+Saved run summary to results/results_table5_DCR_none_d3_seed4.json

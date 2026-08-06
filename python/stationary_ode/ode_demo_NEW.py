@@ -39,8 +39,8 @@ parser.add_argument('--adjoint', action='store_true')
 parser.add_argument('--basis', choices=['legendre', 'monomial', 'none'], default='legendre',
                      help='"none" trains a standard, time-INVARIANT neural ODE (ODEFunc '
                           'used directly, no TimeParameterizedNet wrapping) -- the static/'
-                          'identity baseline needed for Table 4\'s ΔError column and for '
-                          'Table 6\'s "static (identity)" row (Referee 2, comment 2.6 / '
+                          'identity baseline needed for Table 3\'s "static (identity)" row '
+                          'and its ΔError column (Referee 2, comment 2.6 / '
                           'Referee 3, comment R3.6).')
 parser.add_argument('--degree', type=int, default=3,
                      help='Ignored (forced to 0) when --basis none.')
@@ -179,7 +179,7 @@ T_MAX = TSPAN[1]
 # All three are evaluated the SAME way for reporting purposes: integrate the
 # model forward from the true state at the region's left boundary, compute
 # relative error against ground truth over that region. This makes train/val/
-# test numbers directly comparable in Table 6, addressing comment 2.6.5
+# test numbers directly comparable in Table 3, addressing comment 2.6.5
 # (validation used for tuning/stopping, test reserved for final comparison)
 # together with 2.6.4 (relative, not raw, error).
 # ---------------------------------------------------------------------------
@@ -380,8 +380,8 @@ if __name__ == '__main__':
     if args.basis == 'none':
         # Static / identity baseline: standard, time-INVARIANT neural ODE
         # (Chen et al.'s original formulation) -- no TimeParameterizedNet
-        # wrapping. This is the reference point for Table 4's DeltaError
-        # column and Table 6's "static (identity)" row.
+        # wrapping. This is the reference point for Table 3's "static
+        # (identity)" row and its DeltaError column.
         args.degree = 0  # placeholder, matches the MATLAB pipeline's convention for basis='none'
         print("Using STATIC (identity) baseline -- no time-parameterization.")
     else:
@@ -598,8 +598,8 @@ if __name__ == '__main__':
         'test_relerr': test_relerr,
         'test_nfe': test_nfe,
         'trainable_params': num_params,
-        # Table 6 / Table 4 should use these three directly -- all computed
-        # on the same best-on-validation checkpoint, all relative error.
+        # Table 3 should use these three directly -- all computed on the
+        # same best-on-validation checkpoint, all relative error.
         'reported_train_relerr': train_relerr,
         'reported_val_relerr': best_val_relerr,
         'reported_test_relerr': test_relerr,

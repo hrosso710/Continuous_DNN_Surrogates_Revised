@@ -1,0 +1,39 @@
+The device being used is cpu.
+Dataset: ELM | Seed: 3 | Basis: none | Degree: 3 | T: 1.0
+Split sizes: train=1740 val=497 test=249 | input_dim=15 output_dim=10
+Using STATIC (identity) baseline -- no time-parameterization.
+Trainable Parameters: 1965
+Iter 0020 | Val RelErr: 0.413757
+Iter 0040 | Val RelErr: 0.339965
+Iter 0060 | Val RelErr: 0.301815
+Iter 0080 | Val RelErr: 0.310583
+  No improvement (1/5 checks since last best)
+Iter 0100 | Val RelErr: 0.307508
+  No improvement (2/5 checks since last best)
+Iter 0120 | Val RelErr: 0.294765
+Iter 0140 | Val RelErr: 0.289996
+Iter 0160 | Val RelErr: 0.289802
+Iter 0180 | Val RelErr: 0.296707
+  No improvement (1/5 checks since last best)
+Iter 0200 | Val RelErr: 0.283311
+Iter 0220 | Val RelErr: 0.288248
+  No improvement (1/5 checks since last best)
+Iter 0240 | Val RelErr: 0.309315
+  No improvement (2/5 checks since last best)
+Iter 0260 | Val RelErr: 0.289494
+  No improvement (3/5 checks since last best)
+Iter 0280 | Val RelErr: 0.285698
+  No improvement (4/5 checks since last best)
+Iter 0300 | Val RelErr: 0.285445
+  No improvement (5/5 checks since last best)
+
+Early stopping triggered at iter 300 (no improvement for 5 consecutive val checks). Reporting best checkpoint from iter 200.
+Evaluating TRAIN region: 0 calls [00:00, ? calls/s]Evaluating TRAIN region (done, 104 calls): : 0 calls [00:00, ? calls/s]Evaluating TRAIN region (done, 104 calls): : 0 calls [00:00, ? calls/s]
+Evaluating VAL region: 0 calls [00:00, ? calls/s]Evaluating VAL region (done, 110 calls): : 0 calls [00:00, ? calls/s]Evaluating VAL region (done, 110 calls): : 0 calls [00:00, ? calls/s]
+Evaluating TEST region (held out): 0 calls [00:00, ? calls/s]Evaluating TEST region (held out) (done, 104 calls): : 0 calls [00:00, ? calls/s]Evaluating TEST region (held out) (done, 104 calls): : 0 calls [00:00, ? calls/s]
+
+Training complete (stopped_early=True, best_iter=200).
+  TRAIN relerr: 0.290177 (NFE: 104)
+  VAL   relerr: 0.283311 (NFE: 110)  [selection criterion]
+  TEST  relerr: 0.271523 (NFE: 104)  [held out, reported once]
+Saved run summary to results/results_table5_ELM_none_d3_seed3.json

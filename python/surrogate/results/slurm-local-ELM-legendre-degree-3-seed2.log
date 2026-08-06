@@ -1,0 +1,44 @@
+The device being used is cpu.
+Dataset: ELM | Seed: 2 | Basis: legendre | Degree: 3 | T: 1.0
+Split sizes: train=1740 val=497 test=249 | input_dim=15 output_dim=10
+Trainable Parameters: 5095
+Iter 0020 | Val RelErr: 0.350326
+Iter 0040 | Val RelErr: 0.305014
+Iter 0060 | Val RelErr: 0.304167
+Iter 0080 | Val RelErr: 0.304559
+  No improvement (1/5 checks since last best)
+Iter 0100 | Val RelErr: 0.298992
+Iter 0120 | Val RelErr: 0.285427
+Iter 0140 | Val RelErr: 0.311973
+  No improvement (1/5 checks since last best)
+Iter 0160 | Val RelErr: 0.310860
+  No improvement (2/5 checks since last best)
+Iter 0180 | Val RelErr: 0.299580
+  No improvement (3/5 checks since last best)
+Iter 0200 | Val RelErr: 0.292816
+  No improvement (4/5 checks since last best)
+Iter 0220 | Val RelErr: 0.282547
+Iter 0240 | Val RelErr: 0.284115
+  No improvement (1/5 checks since last best)
+Iter 0260 | Val RelErr: 0.271762
+Iter 0280 | Val RelErr: 0.281648
+  No improvement (1/5 checks since last best)
+Iter 0300 | Val RelErr: 0.273156
+  No improvement (2/5 checks since last best)
+Iter 0320 | Val RelErr: 0.278903
+  No improvement (3/5 checks since last best)
+Iter 0340 | Val RelErr: 0.280579
+  No improvement (4/5 checks since last best)
+Iter 0360 | Val RelErr: 0.274098
+  No improvement (5/5 checks since last best)
+
+Early stopping triggered at iter 360 (no improvement for 5 consecutive val checks). Reporting best checkpoint from iter 260.
+Evaluating TRAIN region: 0 calls [00:00, ? calls/s]Evaluating TRAIN region (done, 182 calls): : 0 calls [00:28, ? calls/s]Evaluating TRAIN region (done, 182 calls): : 0 calls [00:28, ? calls/s]
+Evaluating VAL region: 0 calls [00:00, ? calls/s]Evaluating VAL region (done, 170 calls): : 0 calls [00:07, ? calls/s]Evaluating VAL region (done, 170 calls): : 0 calls [00:07, ? calls/s]
+Evaluating TEST region (held out): 0 calls [00:00, ? calls/s]Evaluating TEST region (held out) (done, 188 calls): : 0 calls [00:03, ? calls/s]Evaluating TEST region (held out) (done, 188 calls): : 0 calls [00:03, ? calls/s]
+
+Training complete (stopped_early=True, best_iter=260).
+  TRAIN relerr: 0.273323 (NFE: 182)
+  VAL   relerr: 0.271762 (NFE: 170)  [selection criterion]
+  TEST  relerr: 0.255284 (NFE: 188)  [held out, reported once]
+Saved run summary to results/results_table5_ELM_legendre_d3_seed2.json
